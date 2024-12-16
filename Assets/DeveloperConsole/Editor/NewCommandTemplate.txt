@@ -1,0 +1,44 @@
+using System;
+using System.Collections.Generic;
+
+namespace DeveloperConsole
+{
+    public class #SCRIPTNAME# : Command
+    {
+        public #SCRIPTNAME#()
+        {
+            // Fill with all valid invoking command words
+            commandWords = new string[]
+            {
+                
+            };
+
+            // Add 0 or more arg types to quickly validate parameters.
+            argParser = new ArgumentParser();
+
+            help = new CommandHelp
+            (
+                "new command name",
+                "new command description.",
+                new List<HelpArg>
+                {
+                    new HelpArg
+                    {
+                        name = "arg1 name",
+                        type = "arg1 type",
+                        description = "arg1 description",
+                    }
+                }
+            );
+        }
+
+        public override bool Execute(string[] args)
+        {
+            if (!ValidateArgs(args, out object[] castedArgs)) return false;
+
+            // Set output to a message to log, if any
+            
+            return true;
+        }
+    }
+}
