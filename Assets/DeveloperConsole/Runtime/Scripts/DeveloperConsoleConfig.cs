@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace DeveloperConsole
 {
@@ -8,5 +9,8 @@ namespace DeveloperConsole
         public bool fullscreen;
         public bool pauseTime;
         public bool showUnityLog;
+
+        public int maxHistory;
+        public LinkedList<string> commandHistory;
     }
 }

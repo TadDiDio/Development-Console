@@ -36,11 +36,11 @@ namespace DeveloperConsole
         /// </summary>
         /// <param name="result">The result of the parse attempt.</param>
         /// <returns>An error message.</returns>
-        public string ParseError(ParseResult result)
+        public string ParseError(ArgParseResult result)
         {
-            if (result == ParseResult.Success) return string.Empty;
-            if (result == ParseResult.LengthError) return "Incorrect number of arguments.";
-            if (result == ParseResult.TypeError) return "One or more arguments could not be parsed to the correct type.";
+            if (result == ArgParseResult.Success) return string.Empty;
+            if (result == ArgParseResult.LengthError) return "Incorrect number of arguments.";
+            if (result == ArgParseResult.TypeError) return "One or more arguments could not be parsed to the correct type.";
 
             return string.Empty;
         }

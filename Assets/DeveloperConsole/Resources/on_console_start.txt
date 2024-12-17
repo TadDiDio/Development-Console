@@ -1,0 +1,6 @@
+// This is a comment
+
+// Assign aliases
+alias test clear
+
+print Developer console initialized! // comments after commands work too! :D

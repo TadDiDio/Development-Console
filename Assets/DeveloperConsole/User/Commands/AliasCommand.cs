@@ -1,20 +1,18 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DeveloperConsole
 {
-    public class #SCRIPTNAME# : Command
+    public class AliasCommand : Command
     {
-        public #SCRIPTNAME#()
+        public AliasCommand()
         {
             // Fill with all valid invoking command words
             commandWords = new string[]
             {
-                
+                "alias"
             };
-
-            // Add 0 or more arg configs with argParser.AddArgList()
-            argParser = new ArgumentParser(false);
 
             help = new CommandHelp
             (
@@ -34,10 +32,18 @@ namespace DeveloperConsole
 
         public override bool Execute(string[] args)
         {
-            if (!ValidateArgs(args)) return false;
+            object[] parameters = new object[]
+            {
+                args[0],
+                string.Join(" ", args.Skip(1))
+            };
 
-            // Set output to a message to log, if any
-            
+            FunctionResult result = InvokeFunction(typeof(DeveloperConsoleBehavior), "AddAlias", parameters);
+
+            if (!result.success)
+            {
+                output = ErrorGenerator.ReflectionError(result);
+            }
             return true;
         }
     }

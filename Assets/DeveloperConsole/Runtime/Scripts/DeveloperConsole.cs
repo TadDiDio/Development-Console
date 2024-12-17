@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using UnityEngine;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
@@ -8,7 +7,7 @@ namespace DeveloperConsole
 {
     public class DeveloperConsole
     {
-        private List<Command> commands = new List<Command>();
+        public List<Command> commands { get; private set; } = new List<Command>();
         public DeveloperConsole()
         {
             var commandTypes = AppDomain.CurrentDomain.GetAssemblies()
@@ -21,8 +20,6 @@ namespace DeveloperConsole
                 var instance = (Command)Activator.CreateInstance(type);
                 commands.Add(instance);
             }
-
-            Debug.Log("Developer console initialized");
         }
 
         /// <summary>

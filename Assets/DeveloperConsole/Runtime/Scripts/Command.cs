@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using UnityEngine;
 using System.Reflection;
+using Unity.VisualScripting;
 
 namespace DeveloperConsole
 {
@@ -64,6 +65,9 @@ namespace DeveloperConsole
         /// <returns>The help message.</returns>
         public string Help() => help.Help();
 
+        public string Name() => help.Name();
+        public string Description() => help.Description();
+
         /// <summary>
         /// Resets the meta data in the command to get ready for a new call.
         /// </summary>
@@ -97,6 +101,7 @@ namespace DeveloperConsole
             };
 
             UnityEngine.Object instance = FindObjectInstance(result);
+            if (instance == null) return result;
 
             BindingFlags flags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy;
             MethodInfo[] methods = type.GetMethods(flags)
@@ -162,7 +167,14 @@ namespace DeveloperConsole
             return AccessField(type, fieldName, false, fromCLI, value: value, instanceName: instanceName);
         }
 
-
+        /// <summary>
+        /// Sets the value of a field of an object passed in.
+        /// </summary>
+        /// <param name="instance">The object to set the field of.</param>
+        /// <param name="fieldName">The name of the field.</param>
+        /// <param name="value">The value to set the field to.</param>
+        /// <param name="fromCLI">True if the value was from the command line.</param>
+        /// <returns>FieldResult which holds data about the success of the operation.</returns>
         protected FieldResult SetField(object instance, string fieldName, object value, bool fromCLI = true)
         {
             // Artificially create a response to ensure that it recognizes our object instance
@@ -221,9 +233,11 @@ namespace DeveloperConsole
         /// <returns>True if the args are valid, false otherwise.</returns>
         protected bool ValidateArgs(string[] args)
         {
-            ParseResult result = argParser.Validate(args);
+            if (argParser == null) return true;
 
-            if (result != ParseResult.Success)
+            ArgParseResult result = argParser.Validate(args);
+
+            if (result != ArgParseResult.Success)
             {
                 output = ErrorGenerator.ParseError(result);
                 return false;

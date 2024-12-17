@@ -22,6 +22,33 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "MoreRecentCommand",
+                    "type": "Button",
+                    "id": "b52b4ee2-9642-464b-82e5-0135e75621eb",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "LessRecentCommand",
+                    "type": "Button",
+                    "id": "a1bb1440-f0f7-417c-89e2-7b1ce8ddd7a8",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Backspace",
+                    "type": "Button",
+                    "id": "2b8c1496-e1f6-4b24-8041-149920981194",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -44,6 +71,39 @@
                     "processors": "",
                     "groups": "Keyboard and Mouse",
                     "action": "Exit",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0481e535-87cb-4f60-b8d9-3cae94f3d80d",
+                    "path": "<Keyboard>/upArrow",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "Keyboard and Mouse",
+                    "action": "MoreRecentCommand",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "13d4e899-bd2a-40ff-a2e4-34a3dc47fee7",
+                    "path": "<Keyboard>/downArrow",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "Keyboard and Mouse",
+                    "action": "LessRecentCommand",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "20b54966-3ca3-4be1-bfe7-1875acffaea1",
+                    "path": "<Keyboard>/backspace",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "Keyboard and Mouse",
+                    "action": "Backspace",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
