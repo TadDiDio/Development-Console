@@ -14,12 +14,12 @@ namespace DeveloperConsole
         /// <summary>
         /// Handles parsing arguments.
         /// </summary>
-        protected ArgumentParser argParser;
+        private ArgumentParser argParser = new ArgumentParser();
 
         /// <summary>
         /// Generates error messages for common errors.
         /// </summary>
-        protected CommandErrorGenerator ErrorGenerator { get; private set; } = new CommandErrorGenerator();
+        private CommandErrorGenerator errorGenerator = new CommandErrorGenerator();
 
         /// <summary>
         /// A list of valid command words to invoke this command.
@@ -35,6 +35,8 @@ namespace DeveloperConsole
         /// The output produced by the most recent call of this command. Will be reset after printing to console.
         /// </summary>
         protected string output = String.Empty;
+
+        #region Public
 
         /// <summary>
         /// Runs the command.
@@ -65,7 +67,16 @@ namespace DeveloperConsole
         /// <returns>The help message.</returns>
         public string Help() => help.Help();
 
+        /// <summary>
+        /// Gets the name of this command.
+        /// </summary>
+        /// <returns>The name.</returns>
         public string Name() => help.Name();
+        
+        /// <summary>
+        /// Gets a description of this command.
+        /// </summary>
+        /// <returns>The description.</returns>
         public string Description() => help.Description();
 
         /// <summary>
@@ -75,7 +86,9 @@ namespace DeveloperConsole
         {
             output = String.Empty;
         }
-        
+        #endregion
+
+        #region Protected
         /// <summary>
         /// Invoke a function on an object in the scene.
         /// </summary>
@@ -211,6 +224,98 @@ namespace DeveloperConsole
         }
 
         /// <summary>
+        /// Tries to cast the arg to a new type.
+        /// </summary>
+        /// <typeparam name="T">The type to cast to.</typeparam>
+        /// <param name="arg">The argument to cast.</param>
+        /// <param name="data">The sucessfully casted type.</param>
+        /// <returns>True if the cast was successful, otherwise false.</returns>
+        protected bool Cast<T>(string arg, out T data)
+        {
+            data = default(T);
+
+            if (typeof(T).IsEnum)
+            {
+                try
+                {
+                    data = (T)Enum.Parse(typeof(T), arg);
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                try
+                {
+                    data = (T)Convert.ChangeType(arg, typeof(T));
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Validates args and sets up output with any error message if it fails.
+        /// </summary>
+        /// <param name="args">The args from the command line.</param>
+        /// <returns>True if the args are valid, false otherwise.</returns>
+        protected bool InvalidArgs(string[] args)
+        {
+            if (argParser == null)
+            {
+                Debug.LogError($"Command type {this.GetType()} did not have an arg parser! Aborting command.");
+                return true;
+            }
+
+            ArgParseResult result = argParser.Validate(args, help);
+
+            if (result != ArgParseResult.Success)
+            {
+                output = errorGenerator.ParseError(result);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Returns false and sets the output to the input error message.
+        /// </summary>
+        /// <param name="error">The error message.</param>
+        /// <returns>False.</returns>
+        protected bool ReturnError(string error)
+        {
+            output = error;
+            return false;
+        }
+        /// <summary>
+        /// Returns false and sets the output to the correct error message.
+        /// </summary>
+        /// <param name="result">The result of a reflection call that had an error.</param>
+        /// <returns>False.</returns>
+        protected bool ReturnError(ReflectionResult result)
+        {
+            output = errorGenerator.ReflectionError(result);
+            return false;
+        }
+
+        /// <summary>
+        /// Compares two strings while ignoring case.
+        /// </summary>
+        /// <param name="s1">The first string.</param>
+        /// <param name="s2">The second string.</param>
+        /// <returns>True if they match, false otherwise.</returns>
+        protected bool StringEquals(string s1, string s2)
+        {
+            return s1.Equals(s2, StringComparison.OrdinalIgnoreCase);
+        }
+        /// <summary>
         /// Prints the input to the unity console.
         /// </summary>
         /// <param name="obj">The object to print.</param>
@@ -225,27 +330,9 @@ namespace DeveloperConsole
                 Debug.Log(obj.ToString());
             }
         }
+        #endregion
 
-        /// <summary>
-        /// Validates args and sets up output with any error message if it fails.
-        /// </summary>
-        /// <param name="args">The args from the command line.</param>
-        /// <returns>True if the args are valid, false otherwise.</returns>
-        protected bool ValidateArgs(string[] args)
-        {
-            if (argParser == null) return true;
-
-            ArgParseResult result = argParser.Validate(args);
-
-            if (result != ArgParseResult.Success)
-            {
-                output = ErrorGenerator.ParseError(result);
-                return false;
-            }
-
-            return true;
-        }
-
+        #region Private
         private FieldResult AccessField(Type type, string fieldName, bool get, bool fromCLI, object value = null, string instanceName = null)
         {
             FieldResult result = new FieldResult
@@ -283,7 +370,6 @@ namespace DeveloperConsole
 
             return TrySetField(fromCLI, value, result, instance, field);
         }
-
         private FieldResult TrySetField(bool fromCLI, object value, FieldResult result, object instance, FieldInfo field)
         {
             Type fieldType = field.FieldType;
@@ -296,7 +382,14 @@ namespace DeveloperConsole
 
                 if (fieldType.IsEnum)
                 {
-                    convertedValue = Enum.Parse(fieldType, stringValue);
+                    try
+                    {
+                        convertedValue = Enum.Parse(fieldType, stringValue);
+                    }
+                    catch
+                    {
+                        return result;
+                    }
                 }
                 else
                 {
@@ -328,7 +421,6 @@ namespace DeveloperConsole
 
             return result;
         }
-
         private UnityEngine.Object FindObjectInstance(ReflectionResult result)
         {
             result.validType = result.type.IsSubclassOf(typeof(UnityEngine.Object));
@@ -374,7 +466,9 @@ namespace DeveloperConsole
 
             return instance;
         }
+        #endregion
 
+        #region Types
         /// <summary>
         /// Holds data about the success of a reflection operation.
         /// </summary>
@@ -411,5 +505,6 @@ namespace DeveloperConsole
             public bool validValue;
             public object value;
         }
+        #endregion
     }
 }

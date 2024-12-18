@@ -1,6 +1,9 @@
 using System;
+using System.Linq;
 using UnityEngine;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using Unity.VisualScripting.Antlr3.Runtime.Tree;
 
 namespace DeveloperConsole
 {
@@ -12,14 +15,21 @@ namespace DeveloperConsole
         private string help = "Uninitialized. Please set the help message for this command.";
         private string name = string.Empty;
         private string description = string.Empty;
- 
+        private string[] commandWords;
+        
+        private List<int> argLengths = new List<int>();
+
+        private const string TEMP_OPEN_ANGLE_BRACKET = "§";
+        private const string TEMP_CLOSE_ANGLE_BRACKET = "ô";
+
+
         /// <summary>
         /// Creates and stores metadata about a command.
         /// </summary>
         /// <param name="name">The name of the command.</param>
         /// <param name="description">The description of the command.</param>
         /// <param name="args">A list of associated arguments for the command.</param>
-        public CommandHelp(string name, string description, List<HelpArg> args)
+        public CommandHelp(string name, string description, string[] commandWords, List<CommandUsage> usages)
         {
             if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(description))
             {
@@ -27,38 +37,148 @@ namespace DeveloperConsole
                 return;
             }
 
-            this.name = name;
+            this.name = name.ToLower();
             this.description = description;
+            this.commandWords = commandWords;
 
             string newLine = Environment.NewLine;
             string bar = "======================" + newLine;
 
-            if (!char.IsUpper(name[0])) name = char.ToUpper(name[0]) + name.Substring(1);
+
+            if (char.IsUpper(name[0])) name = char.ToLower(name[0]) + name.Substring(1);
             if (!description.EndsWith('.')) description += '.';
 
-            help = newLine + MessageFormatter.AddColor(name, Color.green) + newLine + bar + description + newLine + newLine;
+            help = newLine + MessageFormatter.AddColor(name, Color.green);
+            help += " (";
 
-            if (args.Count > 0)
+            for (int i = 0; i < commandWords.Length; i++)
             {
-                help += "Args:" + newLine;
+                help += commandWords[i];
+                if (i < commandWords.Length - 1)
+                {
+                    help += ", ";
+                }
             }
 
-            foreach (var arg in args)
+            help += ")" + newLine + bar + description + newLine;
+
+            if (usages == null || usages.Count == 0)
             {
-                if (string.IsNullOrEmpty(arg.name))
-                {
-                    Debug.LogWarning($"An argument in the help documentation for {name} is null and will not be displayed.");
-                    continue;
-                }
+                return;
+            }
 
+            help += newLine + "Usages:" + newLine;
+
+            string[] usageLines = new string[usages.Count];
+            for (int i = 0; i < usageLines.Length; i++)
+            {
+                CommandUsage usage = usages[i];
+                string line = name;
+
+                if (!string.IsNullOrEmpty(usage.invokeWord))
+                {
+                    line += " " + MessageFormatter.AddColor(usage.invokeWord.ToLower(), MessageFormatter.LightBlue);
+                }
                 
-                help += "[" + MessageFormatter.AddColor(arg.name.ToLower(), MessageFormatter.LightBlue) + ": " + arg.type.ToLower() + "] " + arg.description;
-
-                if (!arg.description.EndsWith('.'))
+                if (usage.parameters != null)
                 {
-                    help += '.';
+                    line += " ";
+                    for (int p = 0; p < usage.parameters.Length; p++)
+                    {
+                        string parameter = usage.parameters[p];
+                        
+                        if (parameter.StartsWith("<"))
+                        {
+                            parameter = TEMP_OPEN_ANGLE_BRACKET + parameter.Substring(1);
+                        }
+                        else
+                        {
+                            parameter = TEMP_OPEN_ANGLE_BRACKET + parameter;
+                        }
+                        if (parameter.EndsWith(">"))
+                        {
+                            parameter = parameter.Substring(0, parameter.Length - 2) + TEMP_CLOSE_ANGLE_BRACKET;
+                        }
+                        else
+                        {
+                            parameter = parameter + TEMP_CLOSE_ANGLE_BRACKET;
+                        }
+
+                        line += parameter;
+
+                        if (p != usage.parameters.Length - 1)
+                        {
+                            line += " ";
+                        }
+                    }
                 }
-                help += newLine;
+
+                argLengths.Add(Regex.Split(line.Trim(), @"\s+").Length - 1);
+                usageLines[i] = line;
+            }
+
+            // Remove HTML tags so we don't include those in the perceived length
+            string[] strippedLines = usageLines.ToArray();
+            for (int i = 0; i < usageLines.Length; i++)
+            {
+                if (string.IsNullOrEmpty(usageLines[i]))
+                {
+                    Debug.LogWarning("Found an empty usage line when initializing the developer console.");
+                    strippedLines[i] = usageLines[i];
+                }
+                else
+                {
+                    strippedLines[i] = Regex.Replace(usageLines[i], @"<.*?>", string.Empty);
+                }
+            }
+
+            // Replace temporary tags
+            for (int i = 0; i < usageLines.Length; i++)
+            {
+                usageLines[i] = Regex.Replace(usageLines[i], $@"{TEMP_OPEN_ANGLE_BRACKET}", "<");
+                usageLines[i] = Regex.Replace(usageLines[i], $@"{TEMP_CLOSE_ANGLE_BRACKET}", ">");
+            }
+
+            int longest = strippedLines.OrderByDescending(s => s.Length).First().Length;
+
+            for (int i = 0; i < usageLines.Length; i++)
+            {
+                int bufferSpace = longest - strippedLines[i].Length;
+                
+                string buffer = bufferSpace > 0 ? new string(' ', bufferSpace) : string.Empty;
+                
+                usageLines[i] += buffer;
+            }
+
+            for (int i = 0; i < usageLines.Length; i++)
+            {
+                CommandUsage usage = usages[i];
+                usageLines[i] += " : ";
+
+                string usageDescription = usage.description;
+                if (!string.IsNullOrEmpty(usage.description))
+                {
+                    if (!char.IsUpper(usage.description[0]))
+                    {
+                        usageDescription = char.ToUpper(usage.description[0]) + usage.description.Substring(1);
+                    }
+                }
+                else
+                {
+                    usageDescription = MessageFormatter.AddColor("Please add documentation for this usage in the CommandHelp constructor for this command.", Color.red);
+                }
+
+                usageLines[i] += usageDescription;
+                
+                if (!usageLines[i].EndsWith('.'))
+                {
+                    usageLines[i] += '.';
+                }
+            }
+
+            foreach (string line in usageLines)
+            {
+                help += line + newLine;
             }
         }
 
@@ -79,13 +199,43 @@ namespace DeveloperConsole
         /// </summary>
         /// <returns>The description.</returns>
         public string Description() => description;
+
+        /// <summary>
+        /// Gets all valid invoking words for this command.
+        /// </summary>
+        /// <returns>The invoking words.</returns>
+        public string[] CommandWords() => commandWords;
+
+        /// <summary>
+        /// Returns an array containing all valid numbers of arguments for this command.
+        /// </summary>
+        /// <returns></returns>
+        public List<int> GetArgLengths()
+        {
+            return argLengths;
+        }
     }
 
-    public struct HelpArg
+    /// <summary>
+    /// Holds information about how to use a command.
+    /// </summary>
+    public struct CommandUsage
     {
-        public string name;
-        public string type;
+        public string invokeWord;
+        public string[] parameters;
         public string description;
-    }
 
+        /// <summary>
+        /// Creates a new command usage.
+        /// </summary>
+        /// <param name="invokeWord">The word to invoke this sub command.</param>
+        /// <param name="parameters">The parameters like names or numbers or values.</param>
+        /// <param name="description">The description of what this subcommand does.</param>
+        public CommandUsage(string invokeWord, string[] parameters, string description)
+        {
+            this.invokeWord = invokeWord;
+            this.parameters = parameters;
+            this.description = description;
+        }
+    }
 }

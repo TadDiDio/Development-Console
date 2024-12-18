@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace DeveloperConsole
@@ -13,30 +12,24 @@ namespace DeveloperConsole
                 
             };
 
-            // Add 0 or more arg configs with argParser.AddArgList()
-            argParser = new ArgumentParser(false);
-
+            // Follow the syntax and fill this out
             help = new CommandHelp
             (
-                "new command name",
-                "new command description.",
-                new List<HelpArg>
+                "name",
+                "General description.",
+                commandWords,
+                new List<CommandUsage>
                 {
-                    new HelpArg
-                    {
-                        name = "arg1 name",
-                        type = "arg1 type",
-                        description = "arg1 description",
-                    }
+                    // Add command usages here. See ConfigCommand for example
                 }
             );
         }
 
         public override bool Execute(string[] args)
         {
-            if (!ValidateArgs(args)) return false;
+            if (InvalidArgs(args)) return false;
 
-            // Set output to a message to log, if any
+            // Set member var <output> to a message to log, if any
             
             return true;
         }

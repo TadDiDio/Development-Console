@@ -1,6 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace DeveloperConsole
 {
@@ -16,15 +15,15 @@ namespace DeveloperConsole
 
             help = new CommandHelp
             (
-                "new command name",
-                "new command description.",
-                new List<HelpArg>
+                "Alias",
+                "Creates a session long alias for a command",
+                commandWords,
+                new List<CommandUsage>
                 {
-                    new HelpArg
+                    new CommandUsage
                     {
-                        name = "arg1 name",
-                        type = "arg1 type",
-                        description = "arg1 description",
+                        parameters = new string[] { "alias", "arg1", "arg2", "arg3", "..." },
+                        description = "Reads all args as shown when alias is seen."
                     }
                 }
             );
@@ -42,7 +41,7 @@ namespace DeveloperConsole
 
             if (!result.success)
             {
-                output = ErrorGenerator.ReflectionError(result);
+                return ReturnError(result);
             }
             return true;
         }

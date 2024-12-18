@@ -17,17 +17,25 @@ namespace DeveloperConsole
             (
                 "Clear",
                 "Clears the console log.",
-                new List<HelpArg>()
+                commandWords,
+                new List<CommandUsage>
+                {
+                    new CommandUsage
+                    {
+                        description = "Clears the screen."
+                    }
+                }
             );
         }
         public override bool Execute(string[] args)
         {
+            if (InvalidArgs(args)) return false;
+
             FieldResult result = GetField(typeof(DeveloperConsoleBehavior), "log");
             
             if (!result.success)
             {
-                output = ErrorGenerator.ReflectionError(result);
-                return false;
+                return ReturnError(result);
             }
 
             ((TextMeshProUGUI)result.value).text = string.Empty;

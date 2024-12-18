@@ -13,18 +13,19 @@ namespace DeveloperConsole
                 "echo",
                 "say"
             };
-            
+
             help = new CommandHelp
             (
                 "Print",
                 "Prints something to the console.",
-                new List<HelpArg>()
+                commandWords,
+                new List<CommandUsage>()
                 {
-                    new HelpArg
+                    new CommandUsage
                     {
-                        name = "message",
-                        type = "string",
-                        description = "The thing to print."
+                        invokeWord = "",
+                        parameters = new string[] { "value1", "value2", "..." },
+                        description = "prints the given values to the screen as inputted"
                     }
                 }
             );

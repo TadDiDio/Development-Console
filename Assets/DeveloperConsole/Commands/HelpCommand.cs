@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace DeveloperConsole
@@ -14,23 +13,18 @@ namespace DeveloperConsole
                 "manual"
             };
 
-            argParser = new ArgumentParser(false);
-            argParser.AddArgList(new List<Type>
-            {
-                typeof(string)
-            });
-
             help = new CommandHelp
             (
                 "Help",
                 "Provides a formatted help message to tell how a command works.",
-                new List<HelpArg>
+                commandWords,
+                new List<CommandUsage>
                 {
-                    new HelpArg
+                    new CommandUsage
                     {
-                        name = "command",
-                        type = "string",
-                        description = "The command to search for"
+                        invokeWord = "",
+                        parameters = new string[] { "command" },
+                        description = "Prints help for command."
                     }
                 }
             );
@@ -38,15 +32,14 @@ namespace DeveloperConsole
 
         public override bool Execute(string[] args)
         {
-            if (!ValidateArgs(args)) return false;
+            if (InvalidArgs(args)) return false;
 
             FieldResult result = GetField(typeof(DeveloperConsoleBehavior), "console");
 
             // Failed to get field for some reason
             if (!result.success)
             {
-                output = ErrorGenerator.ReflectionError(result);
-                return false;
+                return ReturnError(result);
             }
 
             // Ensure that command exists

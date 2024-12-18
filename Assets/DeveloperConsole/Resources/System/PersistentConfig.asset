@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 27abbceb606973c44a61b2f2edd77464, type: 3}
   m_Name: PersistentConfig
   m_EditorClassIdentifier: 
-  fullscreen: 0
-  pauseTime: 1
-  showUnityLog: 0
-  maxHistory: 5
+  fullscreen: 1
+  pausetime: 1
+  showunitylog: 0
+  warnonstart: 1
+  maxHistory: 100

@@ -1,78 +1,41 @@
-using System;
+using UnityEngine;
 using System.Collections.Generic;
 
 namespace DeveloperConsole
 {
     /// <summary>
-    /// Validates arguments.
+    /// Validates arguments based on the help description set up by the command constructor.
     /// </summary>
     public class ArgumentParser
     {
-        private List<List<Type>> configs = new List<List<Type>>();
-        private bool allowNoArgs = false;
-
         /// <summary>
-        /// Constructs a new arg parser.
+        /// Validates that the length of the arguments passed in is correct. This does not 
+        /// do type validation.
         /// </summary>
-        /// <param name="allowNoArgs">Whether to allow no argument inputs.</param>
-        public ArgumentParser(bool allowNoArgs)
+        /// <param name="args">The command line args.</param>
+        /// <param name="help">The command's help object.</param>
+        /// <returns>ArgParseResult which tells if it succeeded or not with information.</returns>
+        public ArgParseResult Validate(string[] args, CommandHelp help)
         {
-            this.allowNoArgs = allowNoArgs;
-        }
-
-        /// <summary>
-        /// Adds a list of valid argument types to check for.
-        /// </summary>
-        /// <param name="config">A list of Types which need to be accepted in order.</param>
-        public void AddArgList(List<Type> config)
-        {
-            configs.Add(config);
-        }
-
-        /// <summary>
-        /// Validates whether the given arguments match a registered arg list in length and can be casted to the given type.
-        /// </summary>
-        /// <param name="args">The arguemnts from the command line.</param>
-        /// <returns>A result holding data about the operation.</returns>
-        public ArgParseResult Validate(string[] args)
-        {
-            ArgParseResult result = ArgParseResult.Success;
-
-            if (args.Length == 0)
+            if (help == null)
             {
-                if (allowNoArgs) return result;
-                return ArgParseResult.LengthError;
+                Debug.LogError($"Command type {this.GetType()} was called before it's CommandHelp was initialized. " +
+                    $"Filling out the help field object in the constructor of the command is enforced to keep a maintainable system." +
+                    $"It is also used to validate arguments, so make sure to fill out every use case fully. Happy coding :D");
+                return ArgParseResult.UninitializedHelp;
             }
 
-            foreach (var config in configs)
+            List<int> argLengths = help.GetArgLengths();
+
+            if (argLengths == null || argLengths.Count == 0)
             {
-                bool next = false;
-                if (args.Length != config.Count)
-                {
-                    result = ArgParseResult.LengthError;
-                    continue;
-                }
-
-                for (int i = 0; i < args.Length; i++)
-                {
-                    try
-                    {
-                        Convert.ChangeType(args[i], config[i]);
-                    }
-                    catch
-                    {
-                        next = true;
-                        result = ArgParseResult.TypeError;
-                        break;
-                    }
-                }
-
-                if (next) continue;
-
-                return ArgParseResult.Success;
+                Debug.LogError($"There are no usages defined in the help block for command type {this.GetType()}." +
+                    $"Filling out the help field object in the constructor of the command is enforced to keep a maintainable system." +
+                    $"It is also used to validate arguments, so make sure to fill out every use case fully. Happy coding :D");
             }
 
-            return result;
+            if (!argLengths.Contains(args.Length)) return ArgParseResult.LengthError;
+            return ArgParseResult.Success;
         }
     }
 
@@ -83,6 +46,6 @@ namespace DeveloperConsole
     {
         Success,
         LengthError,
-        TypeError
+        UninitializedHelp
     }
 }

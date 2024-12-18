@@ -3,14 +3,14 @@ using UnityEditor;
 
 namespace DeveloperConsole
 {
-    public class ConfigGenerator
+    public class CustomConfigGenerator
     {
-        [MenuItem("Assets/Create/Developer Console/New console config")]
+        [MenuItem("Assets/Create/Developer Console/New Console Config")]
         public static void CreateNewConsoleConfig()
         {
             DeveloperConsoleConfig newConfig = ScriptableObject.CreateInstance<DeveloperConsoleConfig>();
 
-            string filename = EditorUtility.SaveFilePanelInProject("Save new script", "NewConsoleConfig", "asset", "Create a new console config");
+            string filename = EditorUtility.SaveFilePanelInProject("Save New Script", "NewConsoleConfig", "asset", "Create a new console config");
             AssetDatabase.CreateAsset(newConfig, filename);
 
             AssetDatabase.SaveAssets();

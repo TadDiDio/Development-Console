@@ -21,13 +21,22 @@ namespace DeveloperConsole
             (
                 "Exit",
                 "Exits playmode if in the editor or closes the application if in a build",
-                new List<HelpArg>()
+                commandWords,
+                new List<CommandUsage>
+                {
+                    new CommandUsage
+                    {
+                        description = "Exits the application or editor"
+                    }
+                }
             );
         }
 
         // The commands passed in already have the command word stripped away
         public override bool Execute(string[] args)
         {
+            if (InvalidArgs(args)) return false;
+
             if (Application.isEditor)
             {
                 EditorApplication.isPlaying = false;

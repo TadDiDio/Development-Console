@@ -7,8 +7,9 @@ namespace DeveloperConsole
     public class DeveloperConsoleConfig : ScriptableObject
     {
         public bool fullscreen;
-        public bool pauseTime;
-        public bool showUnityLog;
+        public bool pausetime;
+        public bool showunitylog;
+        public bool warnonstart;
 
         public int maxHistory;
         public LinkedList<string> commandHistory;

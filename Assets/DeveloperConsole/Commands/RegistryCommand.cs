@@ -14,27 +14,31 @@ namespace DeveloperConsole
                 "registry"
             };
 
-            argParser = new ArgumentParser(true);
-
             help = new CommandHelp
             (
                 "Registry",
                 "Gives a list of all commands recognized by the console.",
-                new List<HelpArg>{}
+                commandWords,
+                new List<CommandUsage>
+                {
+                    new CommandUsage
+                    {
+                        description = "Prints a list of all commands to the console."
+                    }
+                }
             );
         }
 
         public override bool Execute(string[] args)
         {
-            if (!ValidateArgs(args)) return false;
+            if (InvalidArgs(args)) return false;
 
             FieldResult result = GetField(typeof(DeveloperConsoleBehavior), "console");
 
             // Failed to get field for some reason
             if (!result.success)
             {
-                output = ErrorGenerator.ReflectionError(result);
-                return false;
+                return ReturnError(result);
             }
 
             DeveloperConsole console = (DeveloperConsole)result.value;

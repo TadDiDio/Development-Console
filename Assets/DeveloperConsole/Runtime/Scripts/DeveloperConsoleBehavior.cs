@@ -4,9 +4,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Unity.VisualScripting;
-using Palmmedia.ReportGenerator.Core.Reporting.Builders;
-using Unity.VisualScripting.FullSerializer;
 
 namespace DeveloperConsole
 {
@@ -41,7 +38,7 @@ namespace DeveloperConsole
 
         private Dictionary<string, string> aliases = new Dictionary<string, string>();
 
-        private WorldStateOnToggle worldStateOnToggle;
+        private float timeScaleOnPause = 1;
 
         private LinkedListNode<string> historyIndex; 
 
@@ -57,7 +54,7 @@ namespace DeveloperConsole
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void BootstrapConsole()
         {
-            GameObject consolePrefab = Resources.Load<GameObject>("DevelopmentConsole");
+            GameObject consolePrefab = Resources.Load<GameObject>("System/DevelopmentConsole");
 
             if (consolePrefab != null)
             {
@@ -82,18 +79,18 @@ namespace DeveloperConsole
                 Instance = this;
             }
 
-            config = Resources.Load<DeveloperConsoleConfig>("PersistentConfig");
+            config = Resources.Load<DeveloperConsoleConfig>("System/PersistentConfig");
             if (config == null)
             {
                 Debug.LogError("Could not find persistent config in resources. " +
-                    "Please make sure there is a DeveloperConsoleConfig in a resources folder named PersistentConfig.");
+                    "Please make sure there is a DeveloperConsoleConfig in a Resources/System folder named PersistentConfig.");
             }
 
             if (config.commandHistory == null) config.commandHistory = new LinkedList<string>();
             historyIndex = config.commandHistory.First;
 
             isFullScreen = config.fullscreen;
-            pauseTime = config.pauseTime;
+            pauseTime = config.pausetime;
 
             SetFullScreen(isFullScreen);
             canvas.SetActive(false);
@@ -101,7 +98,7 @@ namespace DeveloperConsole
             console = new DeveloperConsole();
             input = new DeveloperConsoleInput();
             input.DeveloperConsole.Enable();
-            worldStateOnToggle = new WorldStateOnToggle();
+            timeScaleOnPause = Time.timeScale;
         }
         private void OnEnable()
         {
@@ -136,8 +133,15 @@ namespace DeveloperConsole
 
         private void RunInitializationScript()
         {
-            TextAsset startScript = Resources.Load<TextAsset>("on_console_start");
-            if (startScript == null) return;
+            TextAsset startScript = Resources.Load<TextAsset>("System/on_console_start");
+            if (startScript == null)
+            {
+                if (config.warnonstart)
+                Debug.LogWarning("No developer console initialization script was found. If you intended to have one, make sure it is " +
+                    "named 'on_console_start.txt' and is in the Resources/System directory. Otherwise, use `config set warnonstart false` to " +
+                    "disable this warning.");
+                return;
+            }
 
             string[] rawLines = startScript.text.Split(new[] { '\n', '\r' }, System.StringSplitOptions.RemoveEmptyEntries);
 
@@ -165,9 +169,9 @@ namespace DeveloperConsole
             if (canvas.activeInHierarchy)
             {
                 commandLine.ActivateInputField();
-                worldStateOnToggle.timescale = Time.timeScale;
+                timeScaleOnPause = Time.timeScale;
 
-                if (config.pauseTime)
+                if (config.pausetime)
                 {
                     Time.timeScale = 0;
                 }
@@ -179,7 +183,7 @@ namespace DeveloperConsole
         }
         private void OnExitConsole(InputAction.CallbackContext context)
         {
-            Time.timeScale = worldStateOnToggle.timescale;
+            Time.timeScale = timeScaleOnPause;
 
             ClearCommandLine();
             canvas.SetActive(false);
@@ -310,17 +314,17 @@ namespace DeveloperConsole
                 SetFullScreen(config.fullscreen);
                 isFullScreen = config.fullscreen;
             }
-            if (pauseTime != config.pauseTime)
+            if (pauseTime != config.pausetime)
             {
-                pauseTime = config.pauseTime;
+                pauseTime = config.pausetime;
                 if (pauseTime)
                 {
-                    worldStateOnToggle.timescale = Time.timeScale;
+                    timeScaleOnPause = Time.timeScale;
                     Time.timeScale = 0;
                 }
                 else
                 {
-                    Time.timeScale = worldStateOnToggle.timescale;
+                    Time.timeScale = timeScaleOnPause;
                 }
             }
         }
@@ -360,13 +364,9 @@ namespace DeveloperConsole
             ClearCommandLine();
             commandLine.ActivateInputField();
         }
-        private struct WorldStateOnToggle
-        {
-            public float timescale;
-        }
         private void OnUnityLogMessage(string message, string stackTrace, LogType type) 
         {
-            if (!config.showUnityLog) return;
+            if (!config.showunitylog) return;
 
             switch (type)
             {

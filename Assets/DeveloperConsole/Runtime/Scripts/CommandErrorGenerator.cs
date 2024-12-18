@@ -40,7 +40,7 @@ namespace DeveloperConsole
         {
             if (result == ArgParseResult.Success) return string.Empty;
             if (result == ArgParseResult.LengthError) return "Incorrect number of arguments.";
-            if (result == ArgParseResult.TypeError) return "One or more arguments could not be parsed to the correct type.";
+            if (result == ArgParseResult.UninitializedHelp) return "The help block for this command was uninitialized. See the Unity console.";
 
             return string.Empty;
         }
