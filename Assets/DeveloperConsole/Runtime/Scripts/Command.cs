@@ -88,6 +88,92 @@ namespace DeveloperConsole
         }
         #endregion
 
+        /// <summary>
+        /// Tries to invoke a function on an object. If it fails, it sets the error message and returns false.
+        /// </summary>
+        /// <param name="type">The type of the object.</param>
+        /// <param name="functionName">The name of the function.</param>
+        /// <param name="parameters">Parameters if there are any.</param>
+        /// <param name="instanceName">Name of the object in the scene if there are multiple of this type.</param>
+        /// <returns>True if successful, otherwise false.</returns>
+        protected bool TryInvokeFunction(Type type, string functionName, object[] parameters = null, string instanceName = null)
+        {
+            FunctionResult result = InvokeFunction(type, functionName, parameters, instanceName);
+
+            if (!result.success)
+            {
+                return ReturnError(result);
+            }
+
+            return true;
+        }
+
+
+        protected bool TryInvokeFunction<T>(Type type, string functionName, out T value, object[] parameters = null, string instanceName = null)
+        {
+            value = default(T);
+            FunctionResult result = InvokeFunction(type, functionName, parameters, instanceName);
+
+            if (!result.success)
+            {
+                return ReturnError(result);
+            }
+
+            value = (T)result.returnValue;
+            return true;
+        }
+
+        /// <summary>
+        /// Tries to set a field on an object. If it fails, it sets the error message and returns false.
+        /// </summary>
+        /// <param name="type">The type of the object.</param>
+        /// <param name="fieldName">The field name to set.</param>
+        /// <param name="value">The value to set to.</param>
+        /// <param name="instanceName">The name of the object in the scene if there are multiple.</param>
+        /// <param name="fromCLI">Was the value from the command line?</param>
+        /// <returns>True if successful, otherwise false.</returns>
+        protected bool TrySetField(Type type, string fieldName, object value, string instanceName = null, bool fromCLI = true)
+        {
+            FieldResult result = SetField(type, fieldName, value, instanceName, fromCLI);
+            if (!result.success)
+            {
+                return ReturnError(result);
+            }
+            return true;
+        }
+
+        protected bool TrySetField(object instance, string fieldName, object value, bool fromCLI = true)
+        {
+            FieldResult result = SetField(instance, fieldName, value, fromCLI);
+            if (!result.success)
+            {
+                return ReturnError(result);
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Gets the value of a field. If it fails, it sets the error message and returns false.
+        /// </summary>
+        /// <param name="type">The type of the object.</param>
+        /// <param name="fieldName">The name of the field to set.</param>
+        /// <param name="instanceName">The name of object in the scene if there are multiple.</param>
+        /// <returns>True if successful, otherwise false.</returns>
+        protected bool TryGetField<T>(Type type, string fieldName, out T value, string instanceName = null)
+        {
+            value = default(T);
+
+            FieldResult result = GetField(type, fieldName, instanceName);
+            if (!result.success)
+            {
+                return ReturnError(result);
+            }
+
+            value = (T)result.value;
+
+            return true;
+        }
+
         #region Protected
         /// <summary>
         /// Invoke a function on an object in the scene.
@@ -230,7 +316,7 @@ namespace DeveloperConsole
         /// <param name="arg">The argument to cast.</param>
         /// <param name="data">The sucessfully casted type.</param>
         /// <returns>True if the cast was successful, otherwise false.</returns>
-        protected bool Cast<T>(string arg, out T data)
+        protected bool TryCast<T>(string arg, out T data)
         {
             data = default(T);
 
@@ -294,6 +380,7 @@ namespace DeveloperConsole
             output = error;
             return false;
         }
+        
         /// <summary>
         /// Returns false and sets the output to the correct error message.
         /// </summary>
@@ -315,6 +402,7 @@ namespace DeveloperConsole
         {
             return s1.Equals(s2, StringComparison.OrdinalIgnoreCase);
         }
+
         /// <summary>
         /// Prints the input to the unity console.
         /// </summary>

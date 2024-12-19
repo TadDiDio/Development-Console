@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Unity.VisualScripting.Antlr3.Runtime;
 
 namespace DeveloperConsole
 {
@@ -22,6 +23,10 @@ namespace DeveloperConsole
         [SerializeField] private GameObject smallScreenCanvas;
         [SerializeField] private TMP_InputField smallScreenCommandLine;
         [SerializeField] private TextMeshProUGUI smallScreenLog;
+
+        [Header("Frame counter screen")]
+        [SerializeField] private GameObject frameCanvas;
+        [SerializeField] private TMP_Text frameCounter;
 
         /// <summary>
         /// A singleton instance of the Wrapper around the developer console.
@@ -286,9 +291,23 @@ namespace DeveloperConsole
         #endregion
 
         #region Interface
+        /// <summary>
+        /// Adds an alias.
+        /// </summary>
+        /// <param name="key">The alias to add.</param>
+        /// <param name="value">The command to replace it with.</param>
         public void AddAlias(string key, string value)
         {
-            aliases[key] = value;
+            aliases[key.ToLower()] = value.ToLower();
+        }
+
+        /// <summary>
+        /// Removes an alias.
+        /// </summary>
+        /// <param name="key">The alias to remove.</param>
+        public bool RemoveAlias(string key)
+        {
+            return aliases.Remove(key.ToLower());
         }
         #endregion
 
@@ -327,6 +346,8 @@ namespace DeveloperConsole
                     Time.timeScale = timeScaleOnPause;
                 }
             }
+
+            frameCounter.text = "fps = " + (int)(1 / Time.deltaTime);
         }
         private void OnSubmitCommand(string input)
         {
@@ -352,11 +373,17 @@ namespace DeveloperConsole
 
             historyIndex = null;
 
-            foreach (var keyValpair in aliases)
-            {
-                command = command.Replace(keyValpair.Key, keyValpair.Value);
-            }
+            string commandWord = Regex.Split(command.Trim(), @"\s+")[0];
 
+            Command cmd = console.FindCommand(commandWord);
+            if (cmd == null || !cmd.Name().Equals("alias", StringComparison.OrdinalIgnoreCase))
+            {
+                foreach (var keyValpair in aliases)
+                {
+                    command = command.ToLower().Replace(keyValpair.Key, keyValpair.Value);
+                }
+            }
+           
             string result = console.ProcessCommand(command);
 
             AddMessage(result);

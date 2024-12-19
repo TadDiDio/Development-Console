@@ -24,6 +24,12 @@ namespace DeveloperConsole
                     {
                         parameters = new string[] { "alias", "arg1", "arg2", "arg3", "..." },
                         description = "Reads all args as shown when alias is seen."
+                    },
+                    new CommandUsage
+                    {
+                        subcommand = "remove",
+                        parameters = new string[] { "alias", },
+                        description = "Removes the alias from <alias> if there is one."
                     }
                 }
             );
@@ -31,18 +37,30 @@ namespace DeveloperConsole
 
         public override bool Execute(string[] args)
         {
-            object[] parameters = new object[]
+            if (InvalidArgs(args)) return false;
+
+            if (StringEquals(args[0], "remove"))
+            {
+                object[] p1 = new object[]
+                {
+                    args[1]
+                };
+
+                if (!TryInvokeFunction(typeof(DeveloperConsoleBehavior), "RemoveAlias", out bool success, p1)) return false;
+                if (!success)
+                {
+                    output = $"No alias named {args[1]}";
+                }
+                return true;
+            }
+
+            object[] p2 = new object[]
             {
                 args[0],
                 string.Join(" ", args.Skip(1))
             };
+            if (!TryInvokeFunction(typeof(DeveloperConsoleBehavior), "AddAlias", p2)) return false;
 
-            FunctionResult result = InvokeFunction(typeof(DeveloperConsoleBehavior), "AddAlias", parameters);
-
-            if (!result.success)
-            {
-                return ReturnError(result);
-            }
             return true;
         }
     }

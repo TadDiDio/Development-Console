@@ -34,6 +34,7 @@ namespace DeveloperConsole
                     $"It is also used to validate arguments, so make sure to fill out every use case fully. Happy coding :D");
             }
 
+            if (args.Length> 0 && help.AllowOneOrMoreArgsLength()) return ArgParseResult.Success;
             if (!argLengths.Contains(args.Length)) return ArgParseResult.LengthError;
             return ArgParseResult.Success;
         }

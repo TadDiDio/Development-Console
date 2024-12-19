@@ -1,39 +1,41 @@
-using TMPro;
+using UnityEngine;
 using System.Collections.Generic;
 
 namespace DeveloperConsole
 {
-    public class ClearConsoleCommand : Command
+    public class FPSCommand : Command
     {
-        public ClearConsoleCommand()
+        public FPSCommand()
         {
+            // Fill with all valid invoking command words
             commandWords = new string[]
             {
-                "clear",
-                "cls"
+                "fps",
+                "frame"
             };
 
+            // Follow the syntax and fill this out
             help = new CommandHelp
             (
-                "Clear",
-                "Clears the console log.",
+                "fps",
+                "Shows or hides the fps counter.",
                 commandWords,
                 new List<CommandUsage>
                 {
                     new CommandUsage
                     {
-                        description = "Clears the screen."
+                        description = "Toggles the fps counter."
                     }
                 }
             );
         }
+
         public override bool Execute(string[] args)
         {
             if (InvalidArgs(args)) return false;
-
-            if (!TryGetField(typeof(DeveloperConsoleBehavior), "log", out TMP_Text text)) return false;
+            if (!TryGetField(typeof(DeveloperConsoleBehavior), "frameCanvas", out GameObject canvas)) return false;
             
-            text.text = string.Empty;
+            canvas.SetActive(!canvas.activeSelf);
             return true;
         }
     }

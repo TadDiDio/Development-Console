@@ -22,7 +22,7 @@ namespace DeveloperConsole
                 {
                     new CommandUsage
                     {
-                        invokeWord = "",
+                        subcommand = "",
                         parameters = new string[] { "command" },
                         description = "Prints help for command."
                     }
@@ -33,17 +33,10 @@ namespace DeveloperConsole
         public override bool Execute(string[] args)
         {
             if (InvalidArgs(args)) return false;
-
-            FieldResult result = GetField(typeof(DeveloperConsoleBehavior), "console");
-
-            // Failed to get field for some reason
-            if (!result.success)
-            {
-                return ReturnError(result);
-            }
+            if (!TryGetField(typeof(DeveloperConsoleBehavior), "console", out DeveloperConsole console)) return false;
 
             // Ensure that command exists
-            Command command = ((DeveloperConsole)result.value).FindCommand(args[0]);
+            Command command = console.FindCommand(args[0]);
             if (command == null)
             {
                 output = $"No command found with name {args[0]}.";

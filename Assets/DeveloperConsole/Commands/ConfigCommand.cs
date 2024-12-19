@@ -24,18 +24,18 @@ namespace DeveloperConsole
                 {
                     new CommandUsage
                     {
-                        invokeWord = "",
+                        subcommand = "",
                         description = "Prints all config values to the screen."
                     },
                     new CommandUsage
                     {
-                        invokeWord = "get",
+                        subcommand = "get",
                         parameters = new string[] { "field" },
                         description = "Gets the value of the field."
                     },
                     new CommandUsage
                     {
-                        invokeWord = "set",
+                        subcommand = "set",
                         parameters = new string[] { "field", "value"},
                         description = "Sets field in config to value."
                     }
@@ -66,14 +66,7 @@ namespace DeveloperConsole
 
         private bool ShowConfig()
         {
-            FieldResult fieldResult = GetField(typeof(DeveloperConsoleBehavior), "config");
-
-            if (!fieldResult.success)
-            {
-                return ReturnError(fieldResult);
-            }
-
-            DeveloperConsoleConfig config = (DeveloperConsoleConfig)fieldResult.value;
+            if (!TryGetField(typeof(DeveloperConsoleBehavior), "config", out DeveloperConsoleConfig config)) return false;
 
             string[] lines =
             { 
@@ -102,20 +95,13 @@ namespace DeveloperConsole
                 return false;
             }
 
-            FieldResult fieldResult = GetField(typeof(DeveloperConsoleBehavior), "config");
-
-            if (!fieldResult.success)
-            {
-                return ReturnError(fieldResult);
-            }
-
-            DeveloperConsoleConfig persistentConfig = (DeveloperConsoleConfig)fieldResult.value;
+            if (!TryGetField(typeof(DeveloperConsoleBehavior), "config", out DeveloperConsoleConfig config)) return false;
 
             // ADD ALL COPY SETTINGS HERE
-            persistentConfig.pausetime = newConfig.pausetime;
-            persistentConfig.fullscreen = newConfig.fullscreen;
-            persistentConfig.showunitylog = newConfig.showunitylog;
-            persistentConfig.maxHistory = newConfig.maxHistory;
+            config.pausetime = newConfig.pausetime;
+            config.fullscreen = newConfig.fullscreen;
+            config.showunitylog = newConfig.showunitylog;
+            config.maxHistory = newConfig.maxHistory;
             // END COPY
 
             return true;
@@ -129,22 +115,9 @@ namespace DeveloperConsole
                 return false;
             }
 
-            // Search for field in config named args[1]
-            FieldResult result = GetField(typeof(DeveloperConsoleBehavior), "config");
-
-            if (!result.success)
-            {
-                return ReturnError(result);
-            }
-
-            DeveloperConsoleConfig config = (DeveloperConsoleConfig)result.value;
-            result = SetField(config, args[1], args[2]);
+            if (!TryGetField(typeof(DeveloperConsoleBehavior), "config", out DeveloperConsoleConfig config)) return false;
+            if (!TrySetField(config, args[1], args[2])) return false;
             
-            if (!result.success)
-            {
-                return ReturnError(result);
-            }
-
             return true;
         }
     }

@@ -1,6 +1,5 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace DeveloperConsole
 {
@@ -24,13 +23,13 @@ namespace DeveloperConsole
                 {
                     new CommandUsage
                     {
-                        invokeWord = "get",
+                        subcommand = "get",
                         parameters = new string[] { "value" },
                         description = "Gets the value of the given parameter."
                     },
                     new CommandUsage
                     {
-                        invokeWord = "set",
+                        subcommand = "set",
                         parameters = new string[] { "field", "value" },
                         description = "Sets field to value."
                     }
@@ -80,21 +79,20 @@ namespace DeveloperConsole
             }
             else if (StringEquals(field, "scale"))
             {
-                if (Cast<float>(value, out float scale))
+                if (TryCast<float>(value, out float scale))
                 {
-                    FieldResult result = SetField(typeof(DeveloperConsoleBehavior), "timeScaleOnPause", scale);
-                    if (!result.success)
+                    if (!TrySetField(typeof(DeveloperConsoleBehavior), "timeScaleOnPause", scale))
                     {
-                        return ReturnError(result);
+                        return false;
                     }
 
-                    result = GetField(typeof(DeveloperConsoleBehavior), "config");
-                    if (!result.success)
+                    if (!TryGetField<DeveloperConsoleConfig>(typeof(DeveloperConsoleBehavior),
+                        "config", out DeveloperConsoleConfig config))
                     {
-                        return ReturnError(result);
+                        return false;
                     }
 
-                    if (!((DeveloperConsoleConfig)result.value).pausetime)
+                    if (!config.pausetime)
                     {
                         Time.timeScale = scale;
                     }
@@ -102,10 +100,7 @@ namespace DeveloperConsole
                 }
                 return ReturnError($"Could not cast {value} to a float");
             }
-            else
-            {
-                return ReturnError($"Unrecognized field {field}");
-            }
+            return ReturnError($"Unrecognized field {field}");
         }
     }
 }

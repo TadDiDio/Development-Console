@@ -3,7 +3,6 @@ using System.Linq;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Unity.VisualScripting.Antlr3.Runtime.Tree;
 
 namespace DeveloperConsole
 {
@@ -16,7 +15,8 @@ namespace DeveloperConsole
         private string name = string.Empty;
         private string description = string.Empty;
         private string[] commandWords;
-        
+
+        private bool allowOneOrMoreArgs = false;
         private List<int> argLengths = new List<int>();
 
         private const string TEMP_OPEN_ANGLE_BRACKET = "§";
@@ -75,9 +75,9 @@ namespace DeveloperConsole
                 CommandUsage usage = usages[i];
                 string line = name;
 
-                if (!string.IsNullOrEmpty(usage.invokeWord))
+                if (!string.IsNullOrEmpty(usage.subcommand))
                 {
-                    line += " " + MessageFormatter.AddColor(usage.invokeWord.ToLower(), MessageFormatter.LightBlue);
+                    line += " " + MessageFormatter.AddColor(usage.subcommand.ToLower(), MessageFormatter.LightBlue);
                 }
                 
                 if (usage.parameters != null)
@@ -102,6 +102,11 @@ namespace DeveloperConsole
                         else
                         {
                             parameter = parameter + TEMP_CLOSE_ANGLE_BRACKET;
+                        }
+
+                        if (parameter.Equals($"{TEMP_OPEN_ANGLE_BRACKET}...{TEMP_CLOSE_ANGLE_BRACKET}", StringComparison.OrdinalIgnoreCase))
+                        {
+                            allowOneOrMoreArgs = true;
                         }
 
                         line += parameter;
@@ -214,6 +219,15 @@ namespace DeveloperConsole
         {
             return argLengths;
         }
+
+        /// <summary>
+        /// Returns whether one or more args is valid.
+        /// </summary>
+        /// <returns>True if one or more args are all valid, false otherwise.</returns>
+        public bool AllowOneOrMoreArgsLength()
+        {
+            return allowOneOrMoreArgs;
+        }
     }
 
     /// <summary>
@@ -221,7 +235,7 @@ namespace DeveloperConsole
     /// </summary>
     public struct CommandUsage
     {
-        public string invokeWord;
+        public string subcommand;
         public string[] parameters;
         public string description;
 
@@ -233,7 +247,7 @@ namespace DeveloperConsole
         /// <param name="description">The description of what this subcommand does.</param>
         public CommandUsage(string invokeWord, string[] parameters, string description)
         {
-            this.invokeWord = invokeWord;
+            this.subcommand = invokeWord;
             this.parameters = parameters;
             this.description = description;
         }

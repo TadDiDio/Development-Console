@@ -33,15 +33,7 @@ namespace DeveloperConsole
         {
             if (InvalidArgs(args)) return false;
 
-            FieldResult result = GetField(typeof(DeveloperConsoleBehavior), "console");
-
-            // Failed to get field for some reason
-            if (!result.success)
-            {
-                return ReturnError(result);
-            }
-
-            DeveloperConsole console = (DeveloperConsole)result.value;
+            if (!TryGetField(typeof(DeveloperConsoleBehavior), "console", out DeveloperConsole console)) return false;
 
             output = "=====" + MessageFormatter.AddColor(" Command Registry ", MessageFormatter.LightBlue) + "=====" + Environment.NewLine;
 

@@ -23,7 +23,7 @@ namespace DeveloperConsole
                 {
                     new CommandUsage
                     {
-                        invokeWord = "",
+                        subcommand = "",
                         parameters = new string[] { "value1", "value2", "..." },
                         description = "prints the given values to the screen as inputted"
                     }
@@ -32,7 +32,10 @@ namespace DeveloperConsole
         }
         public override bool Execute(string[] args)
         {
+            if (InvalidArgs(args)) return false;
+
             output = string.Join(" ", args);
+            
             return true;
         }
     }
