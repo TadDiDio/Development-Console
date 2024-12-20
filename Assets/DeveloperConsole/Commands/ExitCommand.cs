@@ -35,8 +35,6 @@ namespace DeveloperConsole
         // The commands passed in already have the command word stripped away
         public override bool Execute(string[] args)
         {
-            if (InvalidArgs(args)) return false;
-
             if (Application.isEditor)
             {
                 EditorApplication.isPlaying = false;

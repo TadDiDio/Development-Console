@@ -37,8 +37,6 @@ namespace DeveloperConsole
 
         public override bool Execute(string[] args)
         {
-            if (InvalidArgs(args)) return false;
-
             if (StringEquals(args[0], "remove"))
             {
                 object[] p1 = new object[]

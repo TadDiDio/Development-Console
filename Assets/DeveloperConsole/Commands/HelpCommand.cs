@@ -32,7 +32,6 @@ namespace DeveloperConsole
 
         public override bool Execute(string[] args)
         {
-            if (InvalidArgs(args)) return false;
             if (!TryGetField(typeof(DeveloperConsoleBehavior), "console", out DeveloperConsole console)) return false;
 
             // Ensure that command exists

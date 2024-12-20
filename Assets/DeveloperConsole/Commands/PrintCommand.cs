@@ -32,8 +32,6 @@ namespace DeveloperConsole
         }
         public override bool Execute(string[] args)
         {
-            if (InvalidArgs(args)) return false;
-
             output = string.Join(" ", args);
             
             return true;

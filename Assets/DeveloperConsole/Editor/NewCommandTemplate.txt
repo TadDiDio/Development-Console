@@ -12,7 +12,7 @@ namespace DeveloperConsole
                 
             };
 
-            // Follow the syntax and fill this out
+            // This block must be filled out or the command will not execute
             help = new CommandHelp
             (
                 "name",
@@ -20,16 +20,14 @@ namespace DeveloperConsole
                 commandWords,
                 new List<CommandUsage>
                 {
-                    // Add command usages here. See ConfigCommand for example
+                    // Add command usages here. See ExampleCommand for example
                 }
             );
         }
 
         public override bool Execute(string[] args)
         {
-            if (InvalidArgs(args)) return false;
-
-            // Set member var <output> to a message to log, if any
+            // Set member <output> to a message to log or leave it blank
             
             return true;
         }

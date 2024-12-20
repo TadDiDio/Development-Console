@@ -29,8 +29,6 @@ namespace DeveloperConsole
         }
         public override bool Execute(string[] args)
         {
-            if (InvalidArgs(args)) return false;
-
             if (!TryGetField(typeof(DeveloperConsoleBehavior), "log", out TMP_Text text)) return false;
             
             text.text = string.Empty;

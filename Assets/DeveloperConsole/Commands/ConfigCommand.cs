@@ -45,8 +45,6 @@ namespace DeveloperConsole
 
         public override bool Execute(string[] args)
         {
-            if (InvalidArgs(args)) return false;
-
             if (args.Length == 0)
             {
                 return ShowConfig();

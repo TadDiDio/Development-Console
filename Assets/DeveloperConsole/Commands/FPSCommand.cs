@@ -32,10 +32,10 @@ namespace DeveloperConsole
 
         public override bool Execute(string[] args)
         {
-            if (InvalidArgs(args)) return false;
             if (!TryGetField(typeof(DeveloperConsoleBehavior), "frameCanvas", out GameObject canvas)) return false;
             
             canvas.SetActive(!canvas.activeSelf);
+
             return true;
         }
     }

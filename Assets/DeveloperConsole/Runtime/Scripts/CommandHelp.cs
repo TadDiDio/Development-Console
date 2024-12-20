@@ -46,7 +46,7 @@ namespace DeveloperConsole
 
 
             if (char.IsUpper(name[0])) name = char.ToLower(name[0]) + name.Substring(1);
-            if (!description.EndsWith('.')) description += '.';
+            if (!this.description.EndsWith('.')) this.description += '.';
 
             help = newLine + MessageFormatter.AddColor(name, Color.green);
             help += " (";

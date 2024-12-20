@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEngine;
 using System.Reflection;
 using Unity.VisualScripting;
+using System.Runtime.InteropServices;
 
 namespace DeveloperConsole
 {
@@ -39,6 +40,30 @@ namespace DeveloperConsole
         #region Public
 
         /// <summary>
+        /// Gets the output that the last successful call of this command produced.
+        /// </summary>
+        /// <returns>The log output.</returns>
+        public string Output() => output;
+
+        /// <summary>
+        /// Gets a help message that describes how to use this command.
+        /// </summary>
+        /// <returns>The help message.</returns>
+        public string Help() => help.Help();
+
+        /// <summary>
+        /// Gets the name of this command.
+        /// </summary>
+        /// <returns>The name.</returns>
+        public string Name() => help.Name();
+
+        /// <summary>
+        /// Gets a description of this command.
+        /// </summary>
+        /// <returns>The description.</returns>
+        public string Description() => help.Description();
+
+        /// <summary>
         /// Runs the command.
         /// </summary>
         /// <param name="args">Arguments for the command.</param>
@@ -55,29 +80,25 @@ namespace DeveloperConsole
             return commandWords.Any(s => s.Equals(word, StringComparison.OrdinalIgnoreCase));
         }
 
-        /// <summary>
-        /// Gets the output that the last successful call of this command produced.
-        /// </summary>
-        /// <returns>The log output.</returns>
-        public string Output() => output;
-        
-        /// <summary>
-        /// Gets a help message that describes how to use this command.
-        /// </summary>
-        /// <returns>The help message.</returns>
-        public string Help() => help.Help();
+        public bool Validate(string[] args)
+        {
+            if (argParser == null)
+            {
+                Debug.LogError($"Command type {this.GetType()} did not have an arg parser! Aborting command.");
+                output = "There was no arg parser for this command. This cannot happend unless you explicitly delete it.";
+                return false;
+            }
 
-        /// <summary>
-        /// Gets the name of this command.
-        /// </summary>
-        /// <returns>The name.</returns>
-        public string Name() => help.Name();
-        
-        /// <summary>
-        /// Gets a description of this command.
-        /// </summary>
-        /// <returns>The description.</returns>
-        public string Description() => help.Description();
+            ArgParseResult result = argParser.Validate(args, help);
+
+            if (result != ArgParseResult.Success)
+            {
+                output = errorGenerator.ParseError(result);
+                return false;
+            }
+
+            return true;
+        }
 
         /// <summary>
         /// Resets the meta data in the command to get ready for a new call.
@@ -88,6 +109,7 @@ namespace DeveloperConsole
         }
         #endregion
 
+        #region Protected
         /// <summary>
         /// Tries to invoke a function on an object. If it fails, it sets the error message and returns false.
         /// </summary>
@@ -108,7 +130,16 @@ namespace DeveloperConsole
             return true;
         }
 
-
+        /// <summary>
+        /// Tries to invoke a function. If it fails, it sets the error message and returns false.
+        /// </summary>
+        /// <typeparam name="T">The type of the function return.</typeparam>
+        /// <param name="type">The type of the object to call the function on.</param>
+        /// <param name="functionName">The name of the function.</param>
+        /// <param name="value">The return of the function.</param>
+        /// <param name="parameters">The parameters of the function if there are any.</param>
+        /// <param name="instanceName">The name of the object in the scene if there are multiple.</param>
+        /// <returns>True if successful, otherwise false.</returns>
         protected bool TryInvokeFunction<T>(Type type, string functionName, out T value, object[] parameters = null, string instanceName = null)
         {
             value = default(T);
@@ -142,6 +173,14 @@ namespace DeveloperConsole
             return true;
         }
 
+        /// <summary>
+        /// Tries to set a field on an object. If it fails, it sets the error message and returns false.
+        /// </summary>
+        /// <param name="instance">The object to set on.</param>
+        /// <param name="fieldName">The field name to set.</param>
+        /// <param name="value">The value to set to.</param>
+        /// <param name="fromCLI">Was the value from the command line?</param>
+        /// <returns>True if successful, otherwise false.</returns>
         protected bool TrySetField(object instance, string fieldName, object value, bool fromCLI = true)
         {
             FieldResult result = SetField(instance, fieldName, value, fromCLI);
@@ -174,7 +213,6 @@ namespace DeveloperConsole
             return true;
         }
 
-        #region Protected
         /// <summary>
         /// Invoke a function on an object in the scene.
         /// </summary>
@@ -347,30 +385,6 @@ namespace DeveloperConsole
         }
 
         /// <summary>
-        /// Validates args and sets up output with any error message if it fails.
-        /// </summary>
-        /// <param name="args">The args from the command line.</param>
-        /// <returns>True if the args are valid, false otherwise.</returns>
-        protected bool InvalidArgs(string[] args)
-        {
-            if (argParser == null)
-            {
-                Debug.LogError($"Command type {this.GetType()} did not have an arg parser! Aborting command.");
-                return true;
-            }
-
-            ArgParseResult result = argParser.Validate(args, help);
-
-            if (result != ArgParseResult.Success)
-            {
-                output = errorGenerator.ParseError(result);
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
         /// Returns false and sets the output to the input error message.
         /// </summary>
         /// <param name="error">The error message.</param>
@@ -514,7 +528,7 @@ namespace DeveloperConsole
             result.validType = result.type.IsSubclassOf(typeof(UnityEngine.Object));
             if (!result.validType) return null;
 
-            var instances = GameObject.FindObjectsOfType(result.type);
+            var instances = GameObject.FindObjectsByType(result.type, default);
             result.instancesFoundInScene = instances.Length;
 
             if (instances.Length == 0)

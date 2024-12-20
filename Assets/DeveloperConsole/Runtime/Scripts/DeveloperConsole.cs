@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using UnityEngine.UI;
 
 namespace DeveloperConsole
 {
@@ -43,13 +44,21 @@ namespace DeveloperConsole
 
             if (command == null)
             {
-                return MessageFormatter.CreateErrorMessage($"Unrecognized command {commandWord}");
+                return MessageFormatter.CreateErrorMessage($"Unrecognized command {commandWord}.");
+            }
+
+            bool validation = command.Validate(args);
+            string message = new string(command.Output());
+            
+            if (!validation)
+            {
+                command.Reset();
+                return MessageFormatter.CreateErrorMessage(message);
             }
 
             bool success = command.Execute(args);
-            
-            string message = new string(command.Output());
-            
+
+            message = new string(command.Output());
             command.Reset();
 
             return success ? message : MessageFormatter.CreateErrorMessage(message);
