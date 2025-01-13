@@ -20,6 +20,7 @@ A **powerful and customizable developer console** for debugging, monitoring, and
 - **Customizable**: Add new commands and tweak the console configuration to your needs.  
 - **Lightweight & Fast**: Minimal performance impact on your app.  
 - **Smart Compile and Bootstrapping**: No need to do any set up once imported, simply press '/' to access the console. Unticking the 'Development Build' checkbox in build settings automatically disables the bootstrapper.
+- **Zero Coupling**: The system uses reflection extensively to remove the need for placing console code in next to application code. Once you write your application code, you can invoke public or private methods and set public or private fields without touching or exposing anything in the application class using the command you write. The base class Command provides lots of helpful methods for doing this.
 
 ---
 
