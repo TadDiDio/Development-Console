@@ -51,7 +51,7 @@ namespace DeveloperConsole
             }
             if (args.Length == 2)
             {
-                return SetConfig(args);
+                return StringEquals(args[0], "get") ? GetConfigSetting(args) : SetConfig(args);
             }
             if (args.Length == 3)
             {
@@ -78,9 +78,38 @@ namespace DeveloperConsole
             return true;
         }
 
+        private bool GetConfigSetting(string[] args)
+        {
+            string settingName = args[1];
+            if (!TryGetField(typeof(DeveloperConsoleBehavior), "config", out DeveloperConsoleConfig config)) return false;
+
+            if (StringEquals(settingName, "fullscreen"))
+            {
+                output = $"fullscreen : {config.fullscreen}";
+                return true;
+            }
+            if (StringEquals(settingName, "pausetime"))
+            {
+                output = $"pausetime : {config.pausetime}";
+                return true;
+            }
+            if (StringEquals(settingName, "showunitylog"))
+            {
+                output = $"showunitylog : {config.showunitylog}";
+                return true;
+            }
+            if (StringEquals(settingName, "warnonstart"))
+            {
+                output = $"warnonstart : {config.warnonstart}";
+                return true;
+            }
+
+            output = $"There is no field named {settingName} in the config.";
+            return false;
+        }
         private bool SetConfig(string[] args)
         {
-            if (!args[0].Equals("set", StringComparison.OrdinalIgnoreCase))
+            if (!StringEquals(args[0], "set"))
             {
                 output = $"Unrecognized argument {args[0]}.";
                 return false;
@@ -99,6 +128,7 @@ namespace DeveloperConsole
             config.pausetime = newConfig.pausetime;
             config.fullscreen = newConfig.fullscreen;
             config.showunitylog = newConfig.showunitylog;
+            config.warnonstart = newConfig.warnonstart;
             config.maxHistory = newConfig.maxHistory;
             // END COPY
 
@@ -107,7 +137,7 @@ namespace DeveloperConsole
 
         private bool SetConfigSetting(string[] args)
         {
-            if (!args[0].Equals("set", StringComparison.OrdinalIgnoreCase))
+            if (!StringEquals(args[0], "set"))
             {
                 output = $"Unrecognized argument {args[0]}.";
                 return false;

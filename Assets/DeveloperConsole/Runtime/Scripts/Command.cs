@@ -2,8 +2,6 @@ using System;
 using System.Linq;
 using UnityEngine;
 using System.Reflection;
-using Unity.VisualScripting;
-using System.Runtime.InteropServices;
 
 namespace DeveloperConsole
 {
@@ -79,6 +77,12 @@ namespace DeveloperConsole
         {
             return commandWords.Any(s => s.Equals(word, StringComparison.OrdinalIgnoreCase));
         }
+
+        /// <summary>
+        /// Gets a list of all command words that invoke this command.
+        /// </summary>
+        /// <returns>The list of command words.</returns>
+        public string[] CommandWords() => commandWords;
 
         public bool Validate(string[] args)
         {

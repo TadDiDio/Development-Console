@@ -5,13 +5,17 @@ public class Test : MonoBehaviour
     private void Update()
     {
         transform.position += Vector3.up * Mathf.Sin(Time.time) * Time.deltaTime;
-        
         //PrintTest();
+    }
+
+    private void SetColor(Color color)
+    {
+        GetComponent<MeshRenderer>().sharedMaterial.color = color;
     }
 
     private void PrintTest()
     {
-        if (Random.value < 0.05)
+        if (Random.value < 0.01)
         {
             float chance = Random.value;
             if (chance > 0.66)

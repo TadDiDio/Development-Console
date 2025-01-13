@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-// Keep all commands in the DeveloperConsole namespace to avoid possible name collisions
+// eep all commands in the DeveloperConsole namespace to avoid possible name collisions
 namespace DeveloperConsole
 {
     /**

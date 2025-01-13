@@ -10,7 +10,7 @@ namespace DeveloperConsole
             // Fill with all valid invoking command words
             commandWords = new string[]
             {
-                "alias"
+                "alias",
             };
 
             help = new CommandHelp

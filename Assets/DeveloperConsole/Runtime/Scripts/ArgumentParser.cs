@@ -29,9 +29,10 @@ namespace DeveloperConsole
 
             if (argLengths == null || argLengths.Count == 0)
             {
-                Debug.LogError($"There are no usages defined in the help block for command type {this.GetType()}." +
+                Debug.LogError($"There are no usages defined in the help block for command {help.Name()}." +
                     $"Filling out the help field object in the constructor of the command is enforced to keep a maintainable system." +
                     $"It is also used to validate arguments, so make sure to fill out every use case fully. Happy coding :D");
+                return ArgParseResult.UninitializedHelp;
             }
 
             if (args.Length> 0 && help.AllowOneOrMoreArgsLength()) return ArgParseResult.Success;

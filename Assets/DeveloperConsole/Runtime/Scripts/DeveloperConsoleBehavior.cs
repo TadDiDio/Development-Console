@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Unity.VisualScripting.Antlr3.Runtime;
 
 namespace DeveloperConsole
 {
@@ -53,6 +52,8 @@ namespace DeveloperConsole
 
         #region Initialization
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+
         /// <summary>
         /// Enables loading the console without needing to have an instance in the scene.
         /// </summary>
@@ -71,6 +72,7 @@ namespace DeveloperConsole
                 Debug.LogWarning("Could not initialize development console because the prefab was not found by a call to Resources.Load()");
             }
         }
+#endif
 
         private void Awake()
         {
@@ -94,6 +96,7 @@ namespace DeveloperConsole
             if (config.commandHistory == null) config.commandHistory = new LinkedList<string>();
             historyIndex = config.commandHistory.First;
 
+            // Add other config settings which need to be updated in real time instead of on console close here:
             isFullScreen = config.fullscreen;
             pauseTime = config.pausetime;
 
@@ -165,7 +168,8 @@ namespace DeveloperConsole
                 RunCommand(line, false);
             }
         }
-        #endregion
+#endregion
+   
         #region Input
         private void OnToggleConsole(InputAction.CallbackContext context)
         {
@@ -252,7 +256,6 @@ namespace DeveloperConsole
             MoveCaretToEnd();
         }
         #endregion
-
 
         #region UI
         private void SetFullScreen(bool fullScreen)
@@ -374,16 +377,39 @@ namespace DeveloperConsole
             historyIndex = null;
 
             string commandWord = Regex.Split(command.Trim(), @"\s+")[0];
-
             Command cmd = console.FindCommand(commandWord);
-            if (cmd == null || !cmd.Name().Equals("alias", StringComparison.OrdinalIgnoreCase))
+
+            if (cmd != null)
             {
-                foreach (var keyValpair in aliases)
+                try
                 {
-                    command = command.ToLower().Replace(keyValpair.Key, keyValpair.Value);
+                    // Test to make sure help is declared
+                    cmd.Name();
+                }
+                catch
+                {
+                    AddMessage(MessageFormatter.CreateErrorMessage($"The base class field commandHelp has not been set for the command {commandWord}. The command " +
+                        $"cannot run without this so it needs to be filled out. See the ExampleCommand class for an example."));
+                    ClearCommandLine();
+                    commandLine.ActivateInputField();
+                    return;
                 }
             }
+
+            if (cmd == null || !cmd.Name().Equals("alias", StringComparison.OrdinalIgnoreCase))
+            {
+                string[] chunkedCommand = Regex.Split(command, @"\s+");
+                for (int i = 0; i < chunkedCommand.Length; i++)
+                {
+                    if (aliases.ContainsKey(chunkedCommand[i]))
+                    {
+                        chunkedCommand[i] = aliases[chunkedCommand[i]];
+                    }
+                }
+                command = string.Join(" ", chunkedCommand);
+            }
            
+
             string result = console.ProcessCommand(command);
 
             AddMessage(result);

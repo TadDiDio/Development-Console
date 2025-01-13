@@ -15,4 +15,5 @@ MonoBehaviour:
   fullscreen: 0
   pausetime: 0
   showunitylog: 0
+  warnonstart: 0
   maxHistory: 100

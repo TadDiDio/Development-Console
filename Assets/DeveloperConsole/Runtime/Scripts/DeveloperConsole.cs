@@ -1,8 +1,8 @@
 using System;
+using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using UnityEngine.UI;
 
 namespace DeveloperConsole
 {
@@ -20,6 +20,23 @@ namespace DeveloperConsole
             {
                 var instance = (Command)Activator.CreateInstance(type);
                 commands.Add(instance);
+            }
+
+            // Check for colliding command words
+            Dictionary<string, Command> set = new();
+            foreach (var command in commands)
+            {
+                foreach (var word in command.CommandWords())
+                {
+                    if (set.ContainsKey(word))
+                    {
+                        Debug.LogError($"Commands {command.Name()} and {set[word].Name()} both use '{word}' as an invoking command word. This will lead to unpredicable behavior.");
+                    }
+                    else
+                    {
+                        set[word] = command;
+                    }
+                }
             }
         }
 
