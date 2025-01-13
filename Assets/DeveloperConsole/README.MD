@@ -35,7 +35,9 @@ After importing the project, **DO NOT** add the developer console prefab to any 
 Pressing the '/' key enables or disables the console. After enabling it, enter the command "reg" to see a list of all available commands, then enter "help <command>" where command is any command listed by reg to see how to use it.
 
 ## Configuration
-Customize your console by using the console config Scriptable Objects. Make sure all of these are stored in a Resources/Configs directory somewhere in the project.
+Customize your console by using the console config Scriptable Objects. Make sure all of these are stored in a Resources/Configs directory somewhere in the project. You can also define a startup file. This 
+must be called on_console_start and located in a directory called Resources/System.
 
 ## Examples
-For a complete example on adding new commands, see the ExampleCommand shipped with the console.
+For a complete example on adding new commands, see the ExampleCommand shipped with the console. To create a new command, right click in the assets browser and select Create->Developer Console->New Command. 
+To create a new console configuration, right click in the assets browser and select Create->Developer Console->New Console Config. 
