@@ -95,6 +95,7 @@ namespace DeveloperConsole
                                                   // In some cases, the parser will detect this and add it for you.
 
             // If length is 0, it must be the default usage defined first in the CommandHelp object.
+            // You should manually validate that the first argument in args is a valid subcommand if you are expecting one.
             if (args.Length == 0)
             {
                 return NoArgsCase();

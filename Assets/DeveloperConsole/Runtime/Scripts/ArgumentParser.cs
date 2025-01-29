@@ -35,7 +35,7 @@ namespace DeveloperConsole
                 return ArgParseResult.UninitializedHelp;
             }
 
-            if (args.Length> 0 && help.AllowOneOrMoreArgsLength()) return ArgParseResult.Success;
+            if (args.Length > 0 && help.AllowOneOrMoreArgsLength()) return ArgParseResult.Success;
             if (!argLengths.Contains(args.Length)) return ArgParseResult.LengthError;
             return ArgParseResult.Success;
         }
