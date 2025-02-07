@@ -84,6 +84,9 @@ namespace DeveloperConsole
             bool foundField = TryGetField(Type.GetType(args[0]), args[2], out object field, args[1]);
             bool foundFunction = TryInvokeFunction(Type.GetType(args[0]), args[2], out object ret, instanceName: args[1]);
 
+            // Clear output internally set from Try functions because we don't want it to print with a return true
+            output = "";
+
             if (foundField)
             {
                 eval = () =>
