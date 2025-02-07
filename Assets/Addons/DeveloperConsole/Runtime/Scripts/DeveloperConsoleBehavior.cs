@@ -1,9 +1,12 @@
 using TMPro;
 using System;
 using UnityEngine;
+using System.Collections;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Reflection;
+using UnityEngine.Rendering;
 
 namespace DeveloperConsole
 {
@@ -23,9 +26,10 @@ namespace DeveloperConsole
         [SerializeField] private TMP_InputField smallScreenCommandLine;
         [SerializeField] private TextMeshProUGUI smallScreenLog;
 
-        [Header("Frame counter screen")]
-        [SerializeField] private GameObject frameCanvas;
+        [Header("Display screen")]
+        [SerializeField] private GameObject displayCanvas;
         [SerializeField] private TMP_Text frameCounter;
+        [SerializeField] private DebugSlot[] debugSlots = new DebugSlot[8];
 
         /// <summary>
         /// A singleton instance of the Wrapper around the developer console.
@@ -71,6 +75,12 @@ namespace DeveloperConsole
             {
                 Debug.LogWarning("Could not initialize development console because the prefab was not found by a call to Resources.Load()");
             }
+
+            // Disable unity's stupid ass hardcoded rendering debugger that prevents you from fast deleting words because of ctrl+bcksp collision
+            // Only works in SRP
+#if SRP
+            DebugManager.instance.enableRuntimeUI = false;
+#endif
         }
 #endif
 
@@ -107,6 +117,8 @@ namespace DeveloperConsole
             input = new DeveloperConsoleInput();
             input.DeveloperConsole.Enable();
             timeScaleOnPause = Time.timeScale;
+
+            StartCoroutine(FrameCounter());
         }
         private void OnEnable()
         {
@@ -291,6 +303,14 @@ namespace DeveloperConsole
         {
             commandLine.text = string.Empty;
         }
+        private IEnumerator FrameCounter()
+        {
+            while (true)
+            {
+                frameCounter.text = "fps = " + (int)(1 / Time.deltaTime);
+                yield return new WaitForSeconds(0.2f);
+            }
+        }
         #endregion
 
         #region Interface
@@ -349,8 +369,6 @@ namespace DeveloperConsole
                     Time.timeScale = timeScaleOnPause;
                 }
             }
-
-            frameCounter.text = "fps = " + (int)(1 / Time.deltaTime);
         }
         private void OnSubmitCommand(string input)
         {

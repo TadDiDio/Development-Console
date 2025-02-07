@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using TMPro;
 
 namespace DeveloperConsole
 {
@@ -32,9 +33,9 @@ namespace DeveloperConsole
 
         public override bool Execute(string[] args)
         {
-            if (!TryGetField(typeof(DeveloperConsoleBehavior), "frameCanvas", out GameObject canvas)) return false;
+            if (!TryGetField(typeof(DeveloperConsoleBehavior), "frameCounter", out TMP_Text text)) return false;
             
-            canvas.SetActive(!canvas.activeSelf);
+            text.gameObject.SetActive(!text.gameObject.activeSelf);
 
             return true;
         }

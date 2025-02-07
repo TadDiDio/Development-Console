@@ -1,0 +1,3 @@
+// Feel free to add any alias, debug, or other set up commands here
+
+print Developer console initialized!
