@@ -29,10 +29,7 @@ namespace DeveloperConsole
         }
         public override bool Execute(string[] args)
         {
-            if (!TryGetField(typeof(DeveloperConsoleBehavior), "log", out TMP_Text text)) return false;
-            
-            text.text = string.Empty;
-            return true;
+            return TryInvokeFunction(typeof(DeveloperConsoleBehavior), "ClearLog");
         }
     }
 }

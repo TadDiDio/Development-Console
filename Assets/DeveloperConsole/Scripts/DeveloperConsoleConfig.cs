@@ -11,12 +11,14 @@ namespace DeveloperConsole
         public bool fullscreen;
         public bool pausetime;
         public bool showunitylog;
+        public bool showunitylogstacktrace;
+
+        public int maxloglines = 999;
 
         [Tooltip("Whether to send a warning to the console if there is no startup script in the resources folder.")]
         public bool warnaboutinitscript;
 
         public int maxhistory;
-        public LinkedList<string> commandHistory;
-        public List<string> test;
+        public List<string> commandHistory;
     }
 }

@@ -1,11 +1,12 @@
 using TMPro;
 using System;
+using UnityEditor;
 using UnityEngine;
 using System.Collections;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using UnityEditor;
+using System.Runtime.CompilerServices;
 
 namespace DeveloperConsole
 {
@@ -47,7 +48,10 @@ namespace DeveloperConsole
 
         private float timeScaleOnPause = 1;
 
-        private LinkedListNode<string> historyIndex; 
+        private string bufferedCommand;
+
+        private int historyIndex;
+        private int logLines = 0;
 
         private bool isFullScreen;
         private bool pauseTime;
@@ -55,7 +59,7 @@ namespace DeveloperConsole
 
         #region Initialization
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+        #if DEVELOPMENT_BUILD || UNITY_EDITOR
 
         /// <summary>
         /// Enables loading the console without needing to have an instance in the scene.
@@ -77,11 +81,11 @@ namespace DeveloperConsole
 
             // Disable unity's stupid ass hardcoded rendering debugger that prevents you from fast deleting words because of ctrl+bcksp collision
             // Only works in SRP
-#if SRP
+            #if SRP
             DebugManager.instance.enableRuntimeUI = false;
-#endif
+            #endif
         }
-#endif
+        #endif
 
         private void Awake()
         {
@@ -104,9 +108,9 @@ namespace DeveloperConsole
 
             if (config.commandHistory == null)
             {
-                config.commandHistory = new LinkedList<string>();
+                config.commandHistory = new List<string>();
             }
-            historyIndex = config.commandHistory.First;
+            historyIndex = -1;
 
             // Add other config settings which need to be updated in real time instead of on console close here:
             isFullScreen = config.fullscreen;
@@ -133,8 +137,8 @@ namespace DeveloperConsole
                 input.DeveloperConsole.Toggle.performed += OnToggleConsole;
                 input.DeveloperConsole.Exit.performed += OnExitConsole;
                 input.DeveloperConsole.Backspace.performed += OnBackspace;
-                input.DeveloperConsole.MoreRecentCommand.performed += OnMoreRecentCommand;
-                input.DeveloperConsole.LessRecentCommand.performed += OnLessRecentCommand;
+                input.DeveloperConsole.MoreRecentCommand.performed += OnLessRecentCommand;
+                input.DeveloperConsole.LessRecentCommand.performed += OnMoreRecentCommand;
             }
         }
         private void OnDisable()
@@ -148,8 +152,17 @@ namespace DeveloperConsole
                 input.DeveloperConsole.Toggle.performed -= OnToggleConsole;
                 input.DeveloperConsole.Exit.performed -= OnExitConsole;
                 input.DeveloperConsole.Backspace.performed -= OnBackspace;
-                input.DeveloperConsole.MoreRecentCommand.performed -= OnMoreRecentCommand;
-                input.DeveloperConsole.LessRecentCommand.performed -= OnLessRecentCommand;
+                input.DeveloperConsole.MoreRecentCommand.performed -= OnLessRecentCommand;
+                input.DeveloperConsole.LessRecentCommand.performed -= OnMoreRecentCommand;
+            }
+
+            if (Application.isEditor)
+            {
+                if (config != null)
+                {
+                    EditorUtility.SetDirty(config);
+                    AssetDatabase.SaveAssets();
+                }
             }
         }
 
@@ -182,7 +195,7 @@ namespace DeveloperConsole
                 RunCommand(line, false);
             }
         }
-#endregion
+        #endregion
    
         #region Input
         private void OnToggleConsole(InputAction.CallbackContext context)
@@ -213,6 +226,8 @@ namespace DeveloperConsole
         }
         private void OnBackspace(InputAction.CallbackContext context)
         {
+            if (!canvas.activeInHierarchy) return;
+
             if (Keyboard.current.ctrlKey.isPressed)
             {
                 string current = commandLine.text;
@@ -239,34 +254,30 @@ namespace DeveloperConsole
                 Canvas.ForceUpdateCanvases();
             }
         }
-        private void OnMoreRecentCommand(InputAction.CallbackContext context)
-        {
-            LinkedList<string> history = config.commandHistory;
-
-            if (history.Count == 0) return;
-
-            if (historyIndex == null)
-            {
-                historyIndex = history.First;
-            }
-            else if(historyIndex.Next != null)
-            {
-                historyIndex = historyIndex.Next;
-            }
-
-            commandLine.text = historyIndex.Value;
-            MoveCaretToEnd();
-        }
         private void OnLessRecentCommand(InputAction.CallbackContext context)
         {
-            LinkedList<string> history = config.commandHistory;
+            if (!canvas.activeInHierarchy) return;
+            
+            List<string> history = config.commandHistory;
 
-            if (history.Count == 0) return;
-            if (historyIndex == history.First) return;
+            if (historyIndex + 1 >= history.Count) return;
 
-            historyIndex = historyIndex.Previous;
+            historyIndex++;
 
-            commandLine.text = historyIndex.Value;
+            commandLine.text = history[historyIndex];
+            MoveCaretToEnd();
+        }
+        private void OnMoreRecentCommand(InputAction.CallbackContext context)
+        {
+            if (!canvas.activeInHierarchy) return;
+
+            List<string> history = config.commandHistory;
+
+            if (historyIndex - 1 < 0) return;
+
+            historyIndex--;
+
+            commandLine.text = history[historyIndex];
             MoveCaretToEnd();
         }
         #endregion
@@ -300,10 +311,27 @@ namespace DeveloperConsole
         private void AddMessage(string message)
         {
             log.text += message + Environment.NewLine;
-        } 
+            logLines++;
+
+            if (logLines > config.maxloglines)
+            {
+                int index = log.text.IndexOf(Environment.NewLine);
+                log.text = log.text.Substring(index + 1);
+                logLines--;
+            }
+        }
         private void ClearCommandLine()
         {
-            commandLine.text = string.Empty;
+            if (string.IsNullOrEmpty(bufferedCommand))
+            {
+                commandLine.text = string.Empty;
+            }
+            else
+            {
+                commandLine.text = bufferedCommand;
+                MoveCaretToEnd();
+                bufferedCommand = string.Empty;
+            }
         }
         private IEnumerator FrameCounter()
         {
@@ -333,6 +361,61 @@ namespace DeveloperConsole
         public bool RemoveAlias(string key)
         {
             return aliases.Remove(key.ToLower());
+        }
+
+        /// <summary>
+        /// Sets the command line to a command in history. Will automatically add 
+        /// one from the input index to account for the command running this.
+        /// </summary>
+        /// <param name="index">The index to set to.</param>
+        /// <returns>True if the index is in range.</returns>
+        public bool SetCMDToHistory(int index)
+        {
+            // Account for the command which was run to invoke this.
+            index++;
+            if (index < 0 || index >= config.commandHistory.Count) return false;
+
+            bufferedCommand = config.commandHistory[index];
+            return true;
+        }
+
+        /// <summary>
+        /// Deletes all old history when the max hisotry is updated.
+        /// </summary>
+        /// <param name="maxCount">The new max histroy to record.</param>
+        /// <returns>True if the index is positive.</returns>
+        public bool SetMaxHistory(int maxCount)
+        {
+            if (maxCount < 0) return false;
+
+            config.maxhistory = maxCount;
+
+            if (maxCount > config.commandHistory.Count) return true;
+
+            List<string> toRemove = new List<string>();
+            for (int i = 0; i < config.commandHistory.Count; i++)
+            {
+                if (i >= maxCount)
+                {
+                    toRemove.Add(config.commandHistory[i]);
+                }
+            }
+
+            foreach (string removeable in toRemove) 
+            { 
+                config.commandHistory.Remove(removeable);
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Clears the log.
+        /// </summary>
+        public void ClearLog()
+        {
+            log.text = string.Empty;
+            logLines = 0;
         }
         #endregion
 
@@ -377,25 +460,41 @@ namespace DeveloperConsole
         {
             RunCommand(input);
         }
+
+        private List<string> ChunkCommand(string command)
+        {
+            var matches = Regex.Matches(command, @"[^\s""']+|""([^""]*)""|'([^']*)'");
+            List<string> result = new List<string>();
+
+            foreach (Match match in matches)
+            {
+                if (!string.IsNullOrEmpty(match.Groups[1].Value)) result.Add(match.Groups[1].Value); 
+                else if (!string.IsNullOrEmpty(match.Groups[2].Value)) result.Add(match.Groups[2].Value);
+                else result.Add(match.Value);
+            }
+
+            return result;
+        }
+
         private void RunCommand(string command, bool addTohistory = true)
         {
             if (addTohistory)
             {
-                bool empty = string.IsNullOrEmpty(command);
-                bool valid = config.commandHistory.First == null || !config.commandHistory.First.Value.Equals(command);
+                bool commandEmpty = string.IsNullOrEmpty(command);
+                bool valid = config.commandHistory.Count == 0 || !config.commandHistory[0].Equals(command);
 
-                if (valid && !empty)
+                if (valid && !commandEmpty)
                 {
-                    config.commandHistory.AddFirst(command);
+                    config.commandHistory.Insert(0, command);
 
                     if (config.commandHistory.Count > config.maxhistory)
                     {
-                        config.commandHistory.RemoveLast();
+                        config.commandHistory.RemoveAt(config.commandHistory.Count - 1);
                     }
                 }
             }
 
-            historyIndex = null;
+            historyIndex = -1;
 
             string commandWord = Regex.Split(command.Trim(), @"\s+")[0];
             Command cmd = console.FindCommand(commandWord);
@@ -417,22 +516,32 @@ namespace DeveloperConsole
                 }
             }
 
+            List<string> chunkedCommand = ChunkCommand(command);
+            List<string> aliasedCommand = new List<string>();
             if (cmd == null || !cmd.Name().Equals("alias", StringComparison.OrdinalIgnoreCase))
             {
-                string[] chunkedCommand = Regex.Split(command, @"\s+");
-                for (int i = 0; i < chunkedCommand.Length; i++)
+                for (int i = 0; i < chunkedCommand.Count; i++)
                 {
                     if (aliases.ContainsKey(chunkedCommand[i]))
                     {
-                        chunkedCommand[i] = aliases[chunkedCommand[i]];
+                        string[] aliasParts = aliases[chunkedCommand[i]].Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                        for (int j = 0; j < aliasParts.Length; j++) 
+                        {
+                            aliasedCommand.Add(aliasParts[j]);
+                        }
+                    }
+                    else
+                    {
+                        aliasedCommand.Add(chunkedCommand[i]);
                     }
                 }
-                command = string.Join(" ", chunkedCommand);
-                print(command);
+            }
+            else if (cmd != null)
+            {
+                aliasedCommand = chunkedCommand;
             }
            
-
-            string result = console.ProcessCommand(command);
+            string result = console.ProcessCommand(aliasedCommand.ToArray());
 
             AddMessage(result);
 
@@ -447,7 +556,7 @@ namespace DeveloperConsole
             {
                 case LogType.Error:
                 case LogType.Exception:
-                    AddMessage(MessageFormatter.CreateErrorMessage("<Unity> " + message));
+                    AddMessage(MessageFormatter.CreateErrorMessage("<Unity> " + message + stackTrace));
                     break;
                 case LogType.Warning:
                     AddMessage(MessageFormatter.CreateWarningMessage("<Unity> " + message));

@@ -529,6 +529,7 @@ namespace DeveloperConsole
         }
         private UnityEngine.Object FindObjectInstance(ReflectionResult result)
         {
+            if (result.type == null) return null;
             result.validType = result.type.IsSubclassOf(typeof(UnityEngine.Object));
             if (!result.validType) return null;
 

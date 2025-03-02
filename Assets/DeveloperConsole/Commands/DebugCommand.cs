@@ -81,17 +81,16 @@ namespace DeveloperConsole
 
             Func<string> eval = () => "";
 
-            bool foundField = TryGetField(Type.GetType(args[0]), args[2], out object field, args[1]);
-            bool foundFunction = TryInvokeFunction(Type.GetType(args[0]), args[2], out object ret, instanceName: args[1]);
+            bool foundField = TryGetField(GetType(args[0]), args[2], out object field, args[1]);
+            bool foundFunction = TryInvokeFunction(GetType(args[0]), args[2], out object ret, instanceName: args[1]);
 
             // Clear output internally set from Try functions because we don't want it to print with a return true
             output = "";
-
             if (foundField)
             {
                 eval = () =>
                 {
-                    TryGetField(Type.GetType(args[0]), args[2], out object field, args[1]);
+                    TryGetField(GetType(args[0]), args[2], out object field, args[1]);
                     return $"{args[3]}: {field.ToString()}";
                 };
             }
@@ -99,7 +98,7 @@ namespace DeveloperConsole
             {
                 eval = () =>
                 {
-                    TryInvokeFunction(Type.GetType(args[0]), args[2], out object ret, instanceName: args[1]);
+                    TryInvokeFunction(GetType(args[0]), args[2], out object ret, instanceName: args[1]);
                     return $"{args[3]}: {ret.ToString()}";
                 };
             }
@@ -111,6 +110,29 @@ namespace DeveloperConsole
 
             slots[index].SetEvaluation(eval);
             return true;
+        }
+
+        private Type GetType(string name)
+        {
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+
+            // Loop through each assembly
+            foreach (var assembly in assemblies)
+            {
+                // Get all types in the current assembly
+                Type[] types = assembly.GetTypes();
+
+                // Search for a type matching the typeName in the current assembly
+                foreach (var type in types)
+                {
+                    if (StringEquals(type.Name, name))
+                    {
+                        return type;  // Type found, return it
+                    }
+                }
+            }
+
+            return null;
         }
     }
 }

@@ -43,19 +43,17 @@ namespace DeveloperConsole
         /// <summary>
         /// Processes the input on the command line.
         /// </summary>
-        /// <param name="rawInput">The input coming directly from the command line.</param>
+        /// <param name="chunkedInput">The input coming directly from the command line.</param>
         /// <returns>
         /// A message to display in the console as a result of processing the input. 
         /// This could the output from a command or an error message.
         /// </returns>
-        public string ProcessCommand(string rawInput)
+        public string ProcessCommand(string[] chunkedInput)
         {
-            if (rawInput.Equals(string.Empty)) return string.Empty;
+            if (chunkedInput.Length == 0) return string.Empty;
 
-            string[] rawArgs = Regex.Split(rawInput.Trim(), @"\s+");
-
-            string[] args = rawArgs.Skip(1).ToArray();
-            string commandWord = rawArgs[0];
+            string commandWord = chunkedInput[0];
+            string[] args = chunkedInput.Skip(1).ToArray();
 
             Command command = FindCommand(commandWord);
 

@@ -72,7 +72,9 @@ namespace DeveloperConsole
                 $"pausetime : {config.pausetime}",
                 $"showunitylog : {config.showunitylog}",
                 $"warnaboutinitscript : {config.warnaboutinitscript}",
-                $"maxhistory : {config.maxhistory}"
+                $"maxhistory : {config.maxhistory}",
+                $"showunitylogstacktrace : {config.showunitylogstacktrace}",
+                $"maxloglines : {config.maxloglines}"
             };
 
             output = Environment.NewLine + "Current config settings" + Environment.NewLine + "=======================" + Environment.NewLine;
@@ -110,6 +112,16 @@ namespace DeveloperConsole
                 output = $"maxhistory : {config.maxhistory}";
                 return true;
             }
+            if (StringEquals(settingName, "showunitylogstacktrace"))
+            {
+                output = $"showunitylogstacktrace : {config.showunitylogstacktrace}";
+                return true;
+            }
+            if (StringEquals(settingName, "maxloglines"))
+            {
+                output = $"maxloglines : {config.maxloglines}";
+                return true;
+            }
 
             output = $"There is no field named {settingName} in the config.";
             return false;
@@ -137,6 +149,8 @@ namespace DeveloperConsole
             config.showunitylog = newConfig.showunitylog;
             config.warnaboutinitscript = newConfig.warnaboutinitscript;
             config.maxhistory = newConfig.maxhistory;
+            config.showunitylogstacktrace = newConfig.showunitylogstacktrace;
+            config.maxloglines = newConfig.maxloglines;
             // END COPY
 
             return true;
@@ -148,6 +162,16 @@ namespace DeveloperConsole
             {
                 output = $"Unrecognized argument {args[0]}.";
                 return false;
+            }
+
+            if (StringEquals(args[1], "maxhistory"))
+            {
+                if (!TryCast(args[2], out int max)) return false;
+                if (!TryInvokeFunction(typeof(DeveloperConsoleBehavior), "SetMaxHistory", out bool success, new object[] { max })) return false;
+
+                if (!success) output = "The new max must be 0 or higher.";
+
+                return success;
             }
 
             if (!TryGetField(typeof(DeveloperConsoleBehavior), "config", out DeveloperConsoleConfig config)) return false;

@@ -62,10 +62,14 @@ namespace DeveloperConsole
             {
                 if (!TryGetField(typeof(DeveloperConsoleBehavior), "aliases", out Dictionary<string, string> aliases)) return false;
 
+                string[] lines = new string[aliases.Keys.Count];
+                int index = 0;
                 foreach (string key in aliases.Keys)
                 {
-                    output += MessageFormatter.AddColor(key, MessageFormatter.LightBlue) + " = " + aliases[key] + Environment.NewLine;
+                    lines[index++] = MessageFormatter.AddColor(key, MessageFormatter.LightBlue) + " = " + aliases[key];
                 }
+
+                output = MessageFormatter.FromLines(MessageFormatter.Align(lines));
                 return true;
             }
 
