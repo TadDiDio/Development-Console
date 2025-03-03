@@ -3,14 +3,13 @@ using System;
 using UnityEditor;
 using UnityEngine;
 using System.Collections;
+using UnityEngine.Rendering;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Net.NetworkInformation;
 
 namespace DeveloperConsole
 {
-
     /// <summary>
     /// A wrapper around the developer console to allow it to interact with Unity.
     /// </summary>
@@ -75,12 +74,6 @@ namespace DeveloperConsole
             {
                 Debug.LogWarning("Could not initialize development console because the prefab was not found by a call to Resources.Load()");
             }
-
-            // Disable unity's stupid ass hardcoded rendering debugger that prevents you from fast deleting words because of ctrl+bcksp collision
-            // Only works in SRP
-            #if SRP
-            DebugManager.instance.enableRuntimeUI = false;
-            #endif
         }
         #endif
 
@@ -125,6 +118,20 @@ namespace DeveloperConsole
 
             StartCoroutine(FrameCounter());
         }
+        private void Start()
+        {
+            string name = "UnityEngine.Rendering.DebugManager, Unity.RenderPipelines.Core.Runtime";
+            Type debugManagerType = Type.GetType(name);
+            if (debugManagerType != null)
+            {
+                var debugManagerInstance = debugManagerType.GetProperty("instance")?.GetValue(null);
+                if (debugManagerInstance != null)
+                {
+                    var enableRuntimeUIProperty = debugManagerType.GetProperty("enableRuntimeUI");
+                    enableRuntimeUIProperty?.SetValue(debugManagerInstance, false);
+                }
+            }
+        }
         private void OnEnable()
         {
             fullScreenCommandLine.onSubmit.AddListener(OnSubmitCommand);
@@ -142,6 +149,7 @@ namespace DeveloperConsole
         }
         private void OnDisable()
         {
+            Time.timeScale = 1;
             fullScreenCommandLine.onSubmit.RemoveListener(OnSubmitCommand);
             smallScreenCommandLine.onSubmit.RemoveListener(OnSubmitCommand);
             Application.logMessageReceived -= OnUnityLogMessage;
@@ -193,7 +201,7 @@ namespace DeveloperConsole
                 RunCommand(line, false);
             }
         }
-        #endregion
+#endregion
    
         #region Input
         private void OnToggleConsole(InputAction.CallbackContext context)

@@ -3,11 +3,14 @@ using Unity.VisualScripting;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.InputSystem;
 
 namespace DeveloperConsole
 {
     public class EventSystemManager : MonoBehaviour
     {
+        [SerializeField] private InputActionAsset developerConsoleActionMap;
+
         private EventSystem eventSystem;
 
         private void Awake()
@@ -15,10 +18,23 @@ namespace DeveloperConsole
             eventSystem = GetComponent<EventSystem>();
 
             #if ENABLE_INPUT_SYSTEM
-            eventSystem.AddComponent<InputSystemUIInputModule>();
+            InputSystemUIInputModule module = eventSystem.AddComponent<InputSystemUIInputModule>();
+            module.actionsAsset = developerConsoleActionMap;
             #else
             eventSystem.AddComponent<StandaloneInputModule>();
             #endif
+        }
+
+        /// <summary>
+        /// Sets the input map.
+        /// </summary>
+        /// <param name="input">The map to set to.</param>
+        public void SetInputMap(DeveloperConsoleInput input)
+        {
+            if (eventSystem.TryGetComponent(out InputSystemUIInputModule module))
+            {
+                //module.actionsAsset = input;
+            }
         }
         private void OnEnable()
         {
