@@ -125,7 +125,7 @@ namespace DeveloperConsole
         protected bool TryInvokeFunction(Type type, string functionName, object[] parameters = null, string instanceName = null)
         {
             FunctionResult result = InvokeFunction(type, functionName, parameters, instanceName);
-
+            
             if (!result.success)
             {
                 return ReturnError(result);
@@ -154,7 +154,16 @@ namespace DeveloperConsole
                 return ReturnError(result);
             }
 
-            value = (T)result.returnValue;
+            if (result.returnValue == null)
+            {
+                output = $"The function {functionName} in type {type.Name} does not return a value. Did you accidentally use the 'out' keyword?";
+                return false;
+            }
+            else
+            {
+                value = (T)result.returnValue;
+            }
+
             return true;
         }
 
@@ -371,7 +380,7 @@ namespace DeveloperConsole
                 }
                 catch
                 {
-                    return false;
+                    return ReturnError($"Failed to cast {arg} to a {typeof(T).Name}.");
                 }
             }
             else
@@ -383,7 +392,7 @@ namespace DeveloperConsole
                 }
                 catch
                 {
-                    return false;
+                    return ReturnError($"Failed to cast string {arg} to {typeof(T).Name}.");
                 }
             }
         }
@@ -407,6 +416,28 @@ namespace DeveloperConsole
         protected bool ReturnError(ReflectionResult result)
         {
             output = errorGenerator.ReflectionError(result);
+            return false;
+        }
+
+        /// <summary>
+        /// Sets output to a helpful message and returns false.
+        /// </summary>
+        /// <param name="subcommand">The name of the unrecognized subcommand.</param>
+        /// <returns>False.</returns>
+        protected bool UnrecognizedSubcommand(string subcommand)
+        {
+            output = $"Unrecognized subcommand {subcommand}.";
+            return false;
+        }
+
+        /// <summary>
+        /// Sets output to a helpful message and returns false.
+        /// </summary>
+        /// <param name="arg">The name of the unrecognized argument.</param>
+        /// <returns>False.</returns>
+        protected bool UnrecognizedArgument(string arg)
+        {
+            output = $"Unrecognized argument {arg}.";
             return false;
         }
 

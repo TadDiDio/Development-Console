@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
 namespace DeveloperConsole
 {
@@ -57,7 +56,7 @@ namespace DeveloperConsole
             }
             else if (args.Length == 2)
             {
-                return SetMax(args[1]);
+                return SetMax(args[0], args[1]);
             }
             else
             {
@@ -87,8 +86,9 @@ namespace DeveloperConsole
             config.commandHistory.Clear();
             return true;
         }
-        private bool SetMax(string maximum)
+        private bool SetMax(string subcommand, string maximum)
         {
+            if (!StringEquals(subcommand, "max")) return UnrecognizedSubcommand(subcommand);
             if (!TryCast(maximum, out int max)) return false;
             if (!TryInvokeFunction(typeof(DeveloperConsoleBehavior), "SetMaxHistory", out bool success, new object[] { max })) return false;
 

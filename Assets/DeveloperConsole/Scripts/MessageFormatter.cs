@@ -13,7 +13,7 @@ namespace DeveloperConsole
         /// <summary>
         /// Light blue.
         /// </summary>
-        public static Color LightBlue
+        public static Color Blue
         {
             get
             {
@@ -21,10 +21,23 @@ namespace DeveloperConsole
                 UnityEngine.ColorUtility.TryParseHtmlString("#00A8DC", out color);
                 return color;
             }
-            private set
-            {
+            private set { }
+        }
 
-            }
+        public static Color Green
+        {
+            get => Color.green;
+            private set { }
+        }
+        public static Color Yellow
+        {
+            get => Color.yellow;
+            private set { }
+        }
+        public static Color Red
+        {
+            get => Color.red;
+            private set { }
         }
 
         /// <summary>
@@ -44,7 +57,7 @@ namespace DeveloperConsole
         /// <returns>The formatted warning message.</returns>
         public static string CreateWarningMessage(string message)
         {
-            return AddColor("[Warning] ", Color.yellow) + message;
+            return AddColor("[Warning] ", Yellow) + message;
         }
 
         /// <summary>
@@ -54,7 +67,7 @@ namespace DeveloperConsole
         /// <returns>The formatted error message.</returns>
         public static string CreateErrorMessage(string message)
         {
-            return AddColor("[Error] ", Color.red) + message;
+            return AddColor("[Error] ", Red) + message;
         }
 
         /// <summary>

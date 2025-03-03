@@ -1,5 +1,4 @@
 // Feel free to add any alias, debug, or other set up commands here
 
-print To see a full list of commands, type 'reg'. Type 'help' followed by a command name for more info!
-
-debug DeveloperConsoleBehavior DevelopmentConsole(Clone) historyIndex index
+print Type 'help' followed by a command name for more info!
+reg

@@ -30,12 +30,12 @@ namespace DeveloperConsole
                     },
                     new CommandUsage
                     {
-                        description = "Shows <field> or calls <func->string> in <instance> (type <type>) with <title> in slot 0.",
+                        description = "Shows <field> or calls <func->string> in <instance> (type <type>) with <title> in slot 0. Use _ to search in first instance found.",
                         parameters = new string[] { "type", "instance", "field/func", "title"}
                     },
                     new CommandUsage
                     {
-                        description = "Shows <field> or calls <func->string> in <instance> (type <type>) with <title> in slot <x>.",
+                        description = "Shows <field> or calls <func->string> in <instance> (type <type>) with <title> in slot <x>. Use _ to search in first instance found.",
                         parameters = new string[] { "type", "instance", "field/func", "title", "x"}
                     }
                 }
@@ -46,15 +46,18 @@ namespace DeveloperConsole
         {
             if (!TryGetField(typeof(DeveloperConsoleBehavior), "debugSlots", out DebugSlot[] slots)) return false;
 
+            string type = args[0];
+            string instance = args[1];
+
             if (args.Length == 2)
             {
-                if (!StringEquals(args[0], "clear"))
+                if (!StringEquals(type, "clear"))
                 {
-                    output = $"Unrecognize subcommand {args[0]}.";
+                    output = $"Unrecognize subcommand {type}.";
                     return false;
                 }
 
-                if (!TryCast(args[1], out int slot))
+                if (!TryCast(instance, out int slot))
                 {
                     return false;
                 }
@@ -62,6 +65,9 @@ namespace DeveloperConsole
                 slots[slot].SetEvaluation(() => "");
                 return true;
             }
+
+            string fieldFuncName = args[2];
+            string title = args[3];
 
             int index = 0;
             if (args.Length == 5)
@@ -81,30 +87,64 @@ namespace DeveloperConsole
 
             Func<string> eval = () => "";
 
-            bool foundField = TryGetField(GetType(args[0]), args[2], out object field, args[1]);
-            bool foundFunction = TryInvokeFunction(GetType(args[0]), args[2], out object ret, instanceName: args[1]);
+            bool foundField = false;
+            bool foundFunction = false;
+            bool firstInstance = instance.Equals("_");
+
+            if (firstInstance)
+            {
+                foundField = TryGetField(GetType(type), fieldFuncName, out object field);
+                foundFunction = TryInvokeFunction(GetType(type), fieldFuncName, out object ret);
+            }
+            else
+            {
+                foundField = TryGetField(GetType(type), fieldFuncName, out object field, instanceName: instance);
+                foundFunction = TryInvokeFunction(GetType(type), fieldFuncName, out object ret, instanceName: instance);
+            }
 
             // Clear output internally set from Try functions because we don't want it to print with a return true
             output = "";
             if (foundField)
             {
-                eval = () =>
+                if (firstInstance)
                 {
-                    TryGetField(GetType(args[0]), args[2], out object field, args[1]);
-                    return $"{args[3]}: {field.ToString()}";
-                };
+                    eval = () =>
+                    {
+                        TryGetField(GetType(type), fieldFuncName, out object field);
+                        return $"{title}: {field.ToString()}";
+                    };
+                }
+                else
+                {
+                    eval = () =>
+                    {
+                        TryGetField(GetType(type), fieldFuncName, out object field, instance);
+                        return $"{title}: {field.ToString()}";
+                    };
+                }
             }
             else if (foundFunction)
             {
-                eval = () =>
+                if (firstInstance)
                 {
-                    TryInvokeFunction(GetType(args[0]), args[2], out object ret, instanceName: args[1]);
-                    return $"{args[3]}: {ret.ToString()}";
-                };
+                    eval = () =>
+                    {
+                        TryInvokeFunction(GetType(type), fieldFuncName, out object ret);
+                        return $"{title}: {ret.ToString()}";
+                    };
+                }
+                else
+                {
+                    eval = () =>
+                    {
+                        TryInvokeFunction(GetType(type), fieldFuncName, out object ret, instanceName: instance);
+                        return $"{title}: {ret.ToString()}";
+                    };
+                }
             }
             else
             {
-                output = $"No field or function with name {args[2]} found in {args[1]} of type {args[0]}";
+                output = $"No field or function with name {fieldFuncName} found in {instance} of type {type}";
                 return false;
             }
 

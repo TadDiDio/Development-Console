@@ -6,7 +6,7 @@ using System.Collections;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Runtime.CompilerServices;
+using System.Net.NetworkInformation;
 
 namespace DeveloperConsole
 {
@@ -56,18 +56,15 @@ namespace DeveloperConsole
         private bool isFullScreen;
         private bool pauseTime;
 
-
         #region Initialization
-
         #if DEVELOPMENT_BUILD || UNITY_EDITOR
-
         /// <summary>
         /// Enables loading the console without needing to have an instance in the scene.
         /// </summary>
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void BootstrapConsole()
         {
-            GameObject consolePrefab = Resources.Load<GameObject>("System/DevelopmentConsole");
+            GameObject consolePrefab = Resources.Load<GameObject>("System/DeveloperConsole");
 
             if (consolePrefab != null)
             {
@@ -119,6 +116,8 @@ namespace DeveloperConsole
             SetFullScreen(isFullScreen);
             canvas.SetActive(false);
 
+            frameCounter.gameObject.SetActive(config.fpsshown);
+
             console = new DeveloperConsole();
             input = new DeveloperConsoleInput();
             input.DeveloperConsole.Enable();
@@ -165,7 +164,6 @@ namespace DeveloperConsole
                 }
             }
         }
-
         private void RunInitializationScript()
         {
             TextAsset startScript = Resources.Load<TextAsset>("System/on_console_start");
@@ -227,32 +225,21 @@ namespace DeveloperConsole
         private void OnBackspace(InputAction.CallbackContext context)
         {
             if (!canvas.activeInHierarchy) return;
+            if (!Keyboard.current.ctrlKey.isPressed) return;
+            if (string.IsNullOrEmpty(commandLine.text)) return;
 
-            if (Keyboard.current.ctrlKey.isPressed)
+            string input = commandLine.text.Trim();
+            
+            int lastCharIndex = input.Length - 1;
+            int wordStart = lastCharIndex;
+            
+            while (wordStart >= 0 && !char.IsWhiteSpace(input[wordStart]))
             {
-                string current = commandLine.text;
-
-                int index = current.Length - 1;
-                while (index > 0 && char.IsWhiteSpace(current[index]))
-                {
-                    index--;
-                }
-
-                if (index == 0)
-                {
-                    commandLine.text = string.Empty;
-                    Canvas.ForceUpdateCanvases();
-                    return;
-                }
-
-                while (index > 0 && !char.IsWhiteSpace(current[index]))
-                {
-                    index--;
-                }
-
-                commandLine.text = current.Substring(0, index + 1);
-                Canvas.ForceUpdateCanvases();
+                wordStart--;
             }
+
+            commandLine.text = input.Substring(0, wordStart + 2);
+            Canvas.ForceUpdateCanvases();
         }
         private void OnLessRecentCommand(InputAction.CallbackContext context)
         {
@@ -333,12 +320,47 @@ namespace DeveloperConsole
                 bufferedCommand = string.Empty;
             }
         }
+
         private IEnumerator FrameCounter()
         {
+            int maxSamples = 150;
+            float[] frameTimes = new float[maxSamples];
+
+            int frameIndex = 0;
+            int frameCount = 0;
+            
+            float totalTime = 0;
+
+            float nextUpdateTime = 0.1f;
+
             while (true)
             {
-                frameCounter.text = "fps = " + (int)(1 / Time.deltaTime);
-                yield return new WaitForSeconds(0.2f);
+                float delta = Time.deltaTime;
+
+                if (frameCount == maxSamples)
+                {
+                    totalTime -= frameTimes[frameIndex];
+                }
+                else
+                {
+                    frameCount++;
+                }
+
+                frameTimes[frameIndex] = delta;
+                totalTime += delta;
+
+                frameIndex = (frameIndex + 1) % maxSamples;
+                int averageTime = (int)(frameCount / totalTime);
+
+                string averageTimeStr = frameCount == maxSamples ? averageTime.ToString() : "...";
+
+                if (Time.time > nextUpdateTime)
+                {
+                    nextUpdateTime = Time.time + 0.1f;
+                    frameCounter.text = $"fps: {(int)(1 / delta)} | avg: {averageTimeStr}";
+                }
+
+                yield return null;
             }
         }
         #endregion
@@ -417,6 +439,30 @@ namespace DeveloperConsole
             log.text = string.Empty;
             logLines = 0;
         }
+
+        /// <summary>
+        /// Sets the frame counter active or not.
+        /// </summary>
+        /// <param name="active">What to set it to.</param>
+        public void SetFrameCounterActive(bool active)
+        {
+            frameCounter.gameObject.SetActive(active);
+        }
+
+        /// <summary>
+        /// Sets the recorded time scale on pause. Useful for setting the timescale while the console is holding it at 0.
+        /// </summary>
+        /// <param name="scale">The scale to set it to.</param>
+        public void OverrideUnpauseTimeScale(float scale)
+        {
+            timeScaleOnPause = scale;
+        }
+
+        /// <summary>
+        /// Gets the time scale from when the console paused time.
+        /// </summary>
+        /// <returns>The time scale.</returns>
+        public float GetUnpauseTimeScale() => timeScaleOnPause;
         #endregion
 
         private bool first = true, second = false;
@@ -460,7 +506,6 @@ namespace DeveloperConsole
         {
             RunCommand(input);
         }
-
         private List<string> ChunkCommand(string command)
         {
             var matches = Regex.Matches(command, @"[^\s""']+|""([^""]*)""|'([^']*)'");
@@ -475,7 +520,6 @@ namespace DeveloperConsole
 
             return result;
         }
-
         private void RunCommand(string command, bool addTohistory = true)
         {
             if (addTohistory)

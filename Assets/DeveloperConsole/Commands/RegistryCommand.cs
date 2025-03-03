@@ -34,7 +34,7 @@ namespace DeveloperConsole
         {
             if (!TryGetField(typeof(DeveloperConsoleBehavior), "console", out DeveloperConsole console)) return false;
 
-            output = "=====" + MessageFormatter.AddColor(" Command Registry ", MessageFormatter.LightBlue) + "=====" + Environment.NewLine;
+            output = "=====" + MessageFormatter.AddColor(" Command Registry ", MessageFormatter.Blue) + "=====" + Environment.NewLine;
 
             string[] lines = new string[console.commands.Count];
             for (int i = 0; i < console.commands.Count; i++)
@@ -43,7 +43,7 @@ namespace DeveloperConsole
                 lines[i] = command.Name() + " : " + command.Description();
             }
 
-            lines = MessageFormatter.Align(lines, new Color[] { Color.green });
+            lines = MessageFormatter.Align(lines, new Color[] { MessageFormatter.Green });
             output = MessageFormatter.FromLines(lines, output, true);
 
             return true;

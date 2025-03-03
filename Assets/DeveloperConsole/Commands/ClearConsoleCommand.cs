@@ -1,4 +1,3 @@
-using TMPro;
 using System.Collections.Generic;
 
 namespace DeveloperConsole

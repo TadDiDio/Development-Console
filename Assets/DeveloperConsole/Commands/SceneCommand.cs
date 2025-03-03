@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 
 namespace DeveloperConsole
@@ -25,6 +25,10 @@ namespace DeveloperConsole
                 {
                     new CommandUsage
                     {
+                        description = "Prints a list of all scenes in build settings.",
+                    },
+                    new CommandUsage
+                    {
                         subcommand = "reload",
                         description = "Reloads the current scene.",
                     },
@@ -32,7 +36,7 @@ namespace DeveloperConsole
                     {
                         subcommand = "set",
                         parameters = new string[] {"sceneName"},
-                        description = "Sets the scene to <sceneName>"
+                        description = "Sets the scene to <sceneName>."
                     },
                 }
             );
@@ -40,13 +44,23 @@ namespace DeveloperConsole
 
         public override bool Execute(string[] args)
         {
+            if (args.Length == 0)
+            {
+                output = $"Registered scenes are:{Environment.NewLine}";
+
+                for (var i = 0; i < SceneManager.sceneCountInBuildSettings; i++)
+                {
+                    string name = SceneUtility.GetScenePathByBuildIndex(i);
+                    name = Path.GetFileNameWithoutExtension(name);
+                    output += MessageFormatter.AddColor(name, MessageFormatter.Blue) + Environment.NewLine;
+                }
+
+                return true;
+            }
             if (args.Length == 1)
             {
-                if (!StringEquals(args[0], "reload"))
-                {
-                    output = $"Invalid subcommand {args[0]}.";
-                    return false;
-                }
+                if (!StringEquals(args[0], "reload")) return UnrecognizedSubcommand(args[0]);
+
                 SceneManager.LoadScene(SceneManager.GetActiveScene().name);
             }
             if (args.Length == 2)
@@ -68,7 +82,7 @@ namespace DeveloperConsole
                         {
                             string name = SceneUtility.GetScenePathByBuildIndex(i);
                             name = Path.GetFileNameWithoutExtension(name);
-                            output += MessageFormatter.AddColor(name, MessageFormatter.LightBlue) + Environment.NewLine;
+                            output += MessageFormatter.AddColor(name, MessageFormatter.Blue) + Environment.NewLine;
                         }
                         return false;
                     }

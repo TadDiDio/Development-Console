@@ -25,13 +25,19 @@ namespace DeveloperConsole
                     new CommandUsage
                     {
                         subcommand = "",
-                        description = "Prints all config values to the screen."
+                        description = "Prints all config values to the screen as well as available presets."
                     },
                     new CommandUsage
                     {
                         subcommand = "get",
                         parameters = new string[] { "field" },
                         description = "Gets the value of the field."
+                    },
+                    new CommandUsage
+                    {
+                        subcommand = "set",
+                        parameters = new string[] { "config" },
+                        description = "Applies all settings in <config>."
                     },
                     new CommandUsage
                     {
@@ -58,7 +64,6 @@ namespace DeveloperConsole
                 return SetConfigSetting(args);
             }
 
-            output = "Something unexpected happened.";
             return false;
         }
 
@@ -70,18 +75,26 @@ namespace DeveloperConsole
             { 
                 $"fullscreen : {config.fullscreen}",
                 $"pausetime : {config.pausetime}",
+                $"fpsshown : {config.fpsshown}",
                 $"showunitylog : {config.showunitylog}",
-                $"warnaboutinitscript : {config.warnaboutinitscript}",
-                $"maxhistory : {config.maxhistory}",
                 $"showunitylogstacktrace : {config.showunitylogstacktrace}",
-                $"maxloglines : {config.maxloglines}"
+                $"maxhistory : {config.maxhistory}",
+                $"maxloglines : {config.maxloglines}",
+                $"warnaboutinitscript : {config.warnaboutinitscript}",
             };
 
             output = Environment.NewLine + "Current config settings" + Environment.NewLine + "=======================" + Environment.NewLine;
-            output = MessageFormatter.FromLines(MessageFormatter.Align(lines, new Color[] { MessageFormatter.LightBlue}), output);
+            output = MessageFormatter.FromLines(MessageFormatter.Align(lines, new Color[] { MessageFormatter.Blue}), output);
+            output += $"{Environment.NewLine}{MessageFormatter.AddColor("Available presets:", MessageFormatter.Green)}" +
+                $"{Environment.NewLine}======================={Environment.NewLine}";
+
+            foreach (var preset in Resources.LoadAll<DeveloperConsoleConfig>("Configs"))
+            {
+                output += $"{MessageFormatter.AddColor(preset.name, MessageFormatter.Blue)}{Environment.NewLine}";
+            }
+            
             return true;
         }
-
         private bool GetConfigSetting(string[] args)
         {
             string settingName = args[1];
@@ -122,17 +135,18 @@ namespace DeveloperConsole
                 output = $"maxloglines : {config.maxloglines}";
                 return true;
             }
+            if (StringEquals(settingName, "fpsshown"))
+            {
+                output = $"fpsshown : {config.fpsshown}";
+                return true;
+            }
 
             output = $"There is no field named {settingName} in the config.";
             return false;
         }
         private bool SetConfig(string[] args)
         {
-            if (!StringEquals(args[0], "set"))
-            {
-                output = $"Unrecognized argument {args[0]}.";
-                return false;
-            }
+            if (!StringEquals(args[0], "set")) return UnrecognizedArgument(args[0]);
 
             DeveloperConsoleConfig newConfig = Resources.Load<DeveloperConsoleConfig>($"Configs/{args[1]}");
             if (newConfig == null)
@@ -141,6 +155,17 @@ namespace DeveloperConsole
                 return false;
             }
 
+            // Set maxhistory
+            if (!TryInvokeFunction(typeof(DeveloperConsoleBehavior), "SetMaxHistory", out bool success1, new object[] { newConfig.maxhistory })) return false;
+            if (!success1)
+            {
+                output = "The new max must be 0 or higher.";
+                return false;
+            }
+
+            // Set fpsshown
+            if (!TryInvokeFunction(typeof(DeveloperConsoleBehavior), "SetFrameCounterActive", new object[] { newConfig.fpsshown })) return false;
+
             if (!TryGetField(typeof(DeveloperConsoleBehavior), "config", out DeveloperConsoleConfig config)) return false;
 
             // ADD ALL COPY SETTINGS HERE
@@ -148,21 +173,17 @@ namespace DeveloperConsole
             config.fullscreen = newConfig.fullscreen;
             config.showunitylog = newConfig.showunitylog;
             config.warnaboutinitscript = newConfig.warnaboutinitscript;
-            config.maxhistory = newConfig.maxhistory;
             config.showunitylogstacktrace = newConfig.showunitylogstacktrace;
             config.maxloglines = newConfig.maxloglines;
+            config.maxhistory = newConfig.maxhistory;
+            config.fpsshown = newConfig.fpsshown;
             // END COPY
 
             return true;
         }
-
         private bool SetConfigSetting(string[] args)
         {
-            if (!StringEquals(args[0], "set"))
-            {
-                output = $"Unrecognized argument {args[0]}.";
-                return false;
-            }
+            if (!StringEquals(args[0], "set")) return UnrecognizedArgument(args[0]);
 
             if (StringEquals(args[1], "maxhistory"))
             {
@@ -172,6 +193,11 @@ namespace DeveloperConsole
                 if (!success) output = "The new max must be 0 or higher.";
 
                 return success;
+            }
+            if (StringEquals(args[1], "fpsshown"))
+            {
+                if (!TryCast(args[2], out bool active)) return false;
+                return TryInvokeFunction(typeof(DeveloperConsoleBehavior), "SetFrameCounterActive", new object[] { active });
             }
 
             if (!TryGetField(typeof(DeveloperConsoleBehavior), "config", out DeveloperConsoleConfig config)) return false;

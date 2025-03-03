@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Collections.Generic;
-using System;
 
 namespace DeveloperConsole
 {
@@ -62,14 +61,19 @@ namespace DeveloperConsole
             {
                 if (!TryGetField(typeof(DeveloperConsoleBehavior), "aliases", out Dictionary<string, string> aliases)) return false;
 
-                string[] lines = new string[aliases.Keys.Count];
-                int index = 0;
-                foreach (string key in aliases.Keys)
+                if (aliases.Keys.Count > 0)
                 {
-                    lines[index++] = MessageFormatter.AddColor(key, MessageFormatter.LightBlue) + " = " + aliases[key];
-                }
+                    string[] lines = new string[aliases.Keys.Count];
+                    int index = 0;
+                    foreach (string key in aliases.Keys)
+                    {
+                        lines[index++] = MessageFormatter.AddColor(key, MessageFormatter.Blue) + " = " + aliases[key];
+                    }
 
-                output = MessageFormatter.FromLines(MessageFormatter.Align(lines));
+                    output = MessageFormatter.FromLines(MessageFormatter.Align(lines));
+                }
+                else output = "No aliases.";
+
                 return true;
             }
 

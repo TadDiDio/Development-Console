@@ -10,14 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 74f5eac8ad268514c9d8afadda86ba92, type: 3}
-  m_Name: PersistentConfig
+  m_Name: NetworkConfig
   m_EditorClassIdentifier: 
   fullscreen: 1
-  pausetime: 1
-  showunitylog: 0
+  pausetime: 0
+  showunitylog: 1
   showunitylogstacktrace: 1
   maxloglines: 250
-  fpsshown: 1
   warnaboutinitscript: 1
   maxhistory: 100
   commandHistory: []

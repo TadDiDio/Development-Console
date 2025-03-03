@@ -48,7 +48,7 @@ namespace DeveloperConsole
             if (char.IsUpper(name[0])) name = char.ToLower(name[0]) + name.Substring(1);
             if (!this.description.EndsWith('.')) this.description += '.';
 
-            help = newLine + MessageFormatter.AddColor(name, Color.green);
+            help = newLine + MessageFormatter.AddColor(name, MessageFormatter.Green);
             help += " (";
 
             for (int i = 0; i < commandWords.Length; i++)
@@ -77,7 +77,7 @@ namespace DeveloperConsole
 
                 if (!string.IsNullOrEmpty(usage.subcommand))
                 {
-                    line += " " + MessageFormatter.AddColor(usage.subcommand.ToLower(), MessageFormatter.LightBlue);
+                    line += " " + MessageFormatter.AddColor(usage.subcommand.ToLower(), MessageFormatter.Blue);
                 }
                 
                 if (usage.parameters != null)
@@ -170,7 +170,7 @@ namespace DeveloperConsole
                 }
                 else
                 {
-                    usageDescription = MessageFormatter.AddColor("Please add documentation for this usage in the CommandHelp constructor for this command.", Color.red);
+                    usageDescription = MessageFormatter.AddColor("Please add documentation for this usage in the CommandHelp constructor for this command.", MessageFormatter.Red);
                 }
 
                 usageLines[i] += usageDescription;

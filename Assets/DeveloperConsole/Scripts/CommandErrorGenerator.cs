@@ -28,7 +28,7 @@ namespace DeveloperConsole
                 if (!field.validValue) return $"The argument ${field.value} could not be cast to the correct type";
             }
 
-            return string.Empty;
+            return "Something when wrong.";
         }
 
         /// <summary>

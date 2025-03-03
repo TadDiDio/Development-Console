@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -23,15 +24,19 @@ namespace DeveloperConsole
                 {
                     new CommandUsage
                     {
+                        description = "Shows the valid fields in the Time class."
+                    },
+                    new CommandUsage
+                    {
                         subcommand = "get",
                         parameters = new string[] { "value" },
-                        description = "Gets the value of the given parameter."
+                        description = "Gets the value of <value> in the Time class."
                     },
                     new CommandUsage
                     {
                         subcommand = "set",
                         parameters = new string[] { "field", "value" },
-                        description = "Sets field to value."
+                        description = "Sets <field> in the Time class to <value>."
                     }
                 }
             );
@@ -39,6 +44,12 @@ namespace DeveloperConsole
 
         public override bool Execute(string[] args)
         {
+            if (args.Length == 0)
+            {
+                output =  "time" + Environment.NewLine;
+                output += "scale" + Environment.NewLine;
+                return true;
+            }
             if (StringEquals(args[0], "get"))
             {
                 return Get(args[1]);
@@ -49,7 +60,7 @@ namespace DeveloperConsole
             }
             else
             {
-                return ReturnError($"Unrecognized argument {args[0]}");
+                return UnrecognizedSubcommand(args[0]);
             }
         }
 
@@ -57,15 +68,22 @@ namespace DeveloperConsole
         {
             if (StringEquals(field, "time"))
             {
-                output = Time.time + "";
+                output = Time.time.ToString();
             }
             else if (StringEquals(field, "scale"))
             {
-                output = Time.timeScale + "";
+                if (!TryGetField<DeveloperConsoleConfig>(typeof(DeveloperConsoleBehavior), "config", out DeveloperConsoleConfig config)) return false;
+
+                if (config.pausetime)
+                {
+                    if (!TryInvokeFunction(typeof(DeveloperConsoleBehavior), "GetUnpauseTimeScale", out float scale)) return false;
+                    output = $"Currently: 0{Environment.NewLine}When unpaused: {scale.ToString()}";
+                }
+                else output = Time.timeScale.ToString();
             }
             else
             {
-                return ReturnError($"Unrecognized field {field}");
+                return UnrecognizedArgument(field);
             }
             return true;
         }
@@ -77,28 +95,20 @@ namespace DeveloperConsole
             }
             else if (StringEquals(field, "scale"))
             {
-                if (TryCast<float>(value, out float scale))
+                if (!TryCast<float>(value, out float scale)) return false;
+                if (!TrySetField(typeof(DeveloperConsoleBehavior), "timeScaleOnPause", scale)) return false;
+
+                if (!TryGetField<DeveloperConsoleConfig>(typeof(DeveloperConsoleBehavior), "config", out DeveloperConsoleConfig config)) return false;
+
+                if (!config.pausetime)
                 {
-                    if (!TrySetField(typeof(DeveloperConsoleBehavior), "timeScaleOnPause", scale))
-                    {
-                        return false;
-                    }
-
-                    if (!TryGetField<DeveloperConsoleConfig>(typeof(DeveloperConsoleBehavior),
-                        "config", out DeveloperConsoleConfig config))
-                    {
-                        return false;
-                    }
-
-                    if (!config.pausetime)
-                    {
-                        Time.timeScale = scale;
-                    }
-                    return true;
+                    Time.timeScale = scale;
                 }
-                return ReturnError($"Could not cast {value} to a float");
+                else if (!TryInvokeFunction(typeof(DeveloperConsoleBehavior), "OverrideUnpauseTimeScale", new object[] { scale })) return false;
+
+                return true;
             }
-            return ReturnError($"Unrecognized field {field}");
+            return UnrecognizedArgument(field);
         }
     }
 }

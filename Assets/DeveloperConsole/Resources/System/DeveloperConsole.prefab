@@ -1110,7 +1110,7 @@ GameObject:
   - component: {fileID: 826103586292744363}
   - component: {fileID: 8545340925808918316}
   m_Layer: 0
-  m_Name: DevelopmentConsole
+  m_Name: DeveloperConsole
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
