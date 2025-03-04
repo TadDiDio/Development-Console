@@ -1,5 +1,10 @@
-using UnityEditor;
 using System.Collections.Generic;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#else
+using UnityEngine;
+#endif
 
 namespace DeveloperConsole
 {
@@ -34,12 +39,11 @@ namespace DeveloperConsole
         // The commands passed in already have the command word stripped away
         public override bool Execute(string[] args)
         {
-#if UNITY_EDITOR
+            #if UNITY_EDITOR
             EditorApplication.isPlaying = false;
-#else
-
+            #else
             Application.Quit();
-#endif
+            #endif
             return true;
         }
     }

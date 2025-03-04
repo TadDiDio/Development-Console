@@ -20,6 +20,4 @@ MonoBehaviour:
   fpsshown: 1
   warnaboutinitscript: 1
   maxhistory: 100
-  commandHistory:
-  - time set scale 1
-  - time set scale 12
+  commandHistory: []

@@ -1,12 +1,14 @@
 using TMPro;
 using System;
-using UnityEditor;
 using UnityEngine;
 using System.Collections;
-using UnityEngine.Rendering;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace DeveloperConsole
 {
@@ -163,14 +165,13 @@ namespace DeveloperConsole
                 input.DeveloperConsole.LessRecentCommand.performed -= OnMoreRecentCommand;
             }
 
-            if (Application.isEditor)
+            #if UNITY_EDITOR
+            if (config != null)
             {
-                if (config != null)
-                {
-                    EditorUtility.SetDirty(config);
-                    AssetDatabase.SaveAssets();
-                }
+                EditorUtility.SetDirty(config);
+                AssetDatabase.SaveAssets();
             }
+            #endif
         }
         private void RunInitializationScript()
         {
@@ -178,18 +179,20 @@ namespace DeveloperConsole
             if (startScript == null)
             {
                 if (config.warnaboutinitscript)
-                Debug.LogWarning("No developer console initialization script was found. If you intended to have one, make sure it is " +
+                {
+                    Debug.LogWarning("No developer console initialization script was found. If you intended to have one, make sure it is " +
                     "named 'on_console_start.txt' and is in the Resources/System directory. Otherwise, use `config set warnonstart false` to " +
                     "disable this warning.");
+                }
                 return;
             }
 
             string[] rawLines = startScript.text.Split(new[] { '\n', '\r' }, System.StringSplitOptions.RemoveEmptyEntries);
 
             List<string> lines = new List<string>();
-            for (int i = 0; i < rawLines.Length; i++)
+            foreach (var line in rawLines)
             {
-                string strippedLine = Regex.Replace(rawLines[i], @"//.*", "").TrimEnd();
+                string strippedLine = Regex.Replace(line, @"//.*", "").TrimEnd();
                 if (!string.IsNullOrEmpty(strippedLine))
                 {
                     lines.Add(strippedLine);
