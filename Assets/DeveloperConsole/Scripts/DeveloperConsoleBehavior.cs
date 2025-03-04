@@ -143,7 +143,6 @@ namespace DeveloperConsole
             if (input != null)
             {
                 input.DeveloperConsole.Toggle.performed += OnToggleConsole;
-                input.DeveloperConsole.Exit.performed += OnExitConsole;
                 input.DeveloperConsole.Backspace.performed += OnBackspace;
                 input.DeveloperConsole.MoreRecentCommand.performed += OnLessRecentCommand;
                 input.DeveloperConsole.LessRecentCommand.performed += OnMoreRecentCommand;
@@ -159,7 +158,6 @@ namespace DeveloperConsole
             if (input != null)
             {
                 input.DeveloperConsole.Toggle.performed -= OnToggleConsole;
-                input.DeveloperConsole.Exit.performed -= OnExitConsole;
                 input.DeveloperConsole.Backspace.performed -= OnBackspace;
                 input.DeveloperConsole.MoreRecentCommand.performed -= OnLessRecentCommand;
                 input.DeveloperConsole.LessRecentCommand.performed -= OnMoreRecentCommand;
@@ -223,10 +221,10 @@ namespace DeveloperConsole
             }
             else
             {
-                OnExitConsole(default);
+                OnExitConsole();
             }
         }
-        private void OnExitConsole(InputAction.CallbackContext context)
+        private void OnExitConsole()
         {
             Time.timeScale = timeScaleOnPause;
 

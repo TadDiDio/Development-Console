@@ -31,16 +31,7 @@ public partial class @DeveloperConsoleInput: IInputActionCollection2, IDisposabl
                     ""name"": ""Toggle"",
                     ""type"": ""Button"",
                     ""id"": ""7a582892-3360-4f95-8275-80e04d46edc2"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""Exit"",
-                    ""type"": ""Button"",
-                    ""id"": ""e9510e64-06df-43e1-88c9-17258c0cab84"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
@@ -49,7 +40,7 @@ public partial class @DeveloperConsoleInput: IInputActionCollection2, IDisposabl
                     ""name"": ""MoreRecentCommand"",
                     ""type"": ""Button"",
                     ""id"": ""b52b4ee2-9642-464b-82e5-0135e75621eb"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
@@ -58,7 +49,7 @@ public partial class @DeveloperConsoleInput: IInputActionCollection2, IDisposabl
                     ""name"": ""LessRecentCommand"",
                     ""type"": ""Button"",
                     ""id"": ""a1bb1440-f0f7-417c-89e2-7b1ce8ddd7a8"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
@@ -82,17 +73,6 @@ public partial class @DeveloperConsoleInput: IInputActionCollection2, IDisposabl
                     ""processors"": """",
                     ""groups"": ""Keyboard and Mouse"",
                     ""action"": ""Toggle"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""d3c89f4e-8057-4126-bcc1-4497c12963ff"",
-                    ""path"": ""<Keyboard>/escape"",
-                    ""interactions"": ""Press"",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard and Mouse"",
-                    ""action"": ""Exit"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -154,7 +134,6 @@ public partial class @DeveloperConsoleInput: IInputActionCollection2, IDisposabl
         // Developer Console
         m_DeveloperConsole = asset.FindActionMap("Developer Console", throwIfNotFound: true);
         m_DeveloperConsole_Toggle = m_DeveloperConsole.FindAction("Toggle", throwIfNotFound: true);
-        m_DeveloperConsole_Exit = m_DeveloperConsole.FindAction("Exit", throwIfNotFound: true);
         m_DeveloperConsole_MoreRecentCommand = m_DeveloperConsole.FindAction("MoreRecentCommand", throwIfNotFound: true);
         m_DeveloperConsole_LessRecentCommand = m_DeveloperConsole.FindAction("LessRecentCommand", throwIfNotFound: true);
         m_DeveloperConsole_Backspace = m_DeveloperConsole.FindAction("Backspace", throwIfNotFound: true);
@@ -225,7 +204,6 @@ public partial class @DeveloperConsoleInput: IInputActionCollection2, IDisposabl
     private readonly InputActionMap m_DeveloperConsole;
     private List<IDeveloperConsoleActions> m_DeveloperConsoleActionsCallbackInterfaces = new List<IDeveloperConsoleActions>();
     private readonly InputAction m_DeveloperConsole_Toggle;
-    private readonly InputAction m_DeveloperConsole_Exit;
     private readonly InputAction m_DeveloperConsole_MoreRecentCommand;
     private readonly InputAction m_DeveloperConsole_LessRecentCommand;
     private readonly InputAction m_DeveloperConsole_Backspace;
@@ -234,7 +212,6 @@ public partial class @DeveloperConsoleInput: IInputActionCollection2, IDisposabl
         private @DeveloperConsoleInput m_Wrapper;
         public DeveloperConsoleActions(@DeveloperConsoleInput wrapper) { m_Wrapper = wrapper; }
         public InputAction @Toggle => m_Wrapper.m_DeveloperConsole_Toggle;
-        public InputAction @Exit => m_Wrapper.m_DeveloperConsole_Exit;
         public InputAction @MoreRecentCommand => m_Wrapper.m_DeveloperConsole_MoreRecentCommand;
         public InputAction @LessRecentCommand => m_Wrapper.m_DeveloperConsole_LessRecentCommand;
         public InputAction @Backspace => m_Wrapper.m_DeveloperConsole_Backspace;
@@ -250,9 +227,6 @@ public partial class @DeveloperConsoleInput: IInputActionCollection2, IDisposabl
             @Toggle.started += instance.OnToggle;
             @Toggle.performed += instance.OnToggle;
             @Toggle.canceled += instance.OnToggle;
-            @Exit.started += instance.OnExit;
-            @Exit.performed += instance.OnExit;
-            @Exit.canceled += instance.OnExit;
             @MoreRecentCommand.started += instance.OnMoreRecentCommand;
             @MoreRecentCommand.performed += instance.OnMoreRecentCommand;
             @MoreRecentCommand.canceled += instance.OnMoreRecentCommand;
@@ -269,9 +243,6 @@ public partial class @DeveloperConsoleInput: IInputActionCollection2, IDisposabl
             @Toggle.started -= instance.OnToggle;
             @Toggle.performed -= instance.OnToggle;
             @Toggle.canceled -= instance.OnToggle;
-            @Exit.started -= instance.OnExit;
-            @Exit.performed -= instance.OnExit;
-            @Exit.canceled -= instance.OnExit;
             @MoreRecentCommand.started -= instance.OnMoreRecentCommand;
             @MoreRecentCommand.performed -= instance.OnMoreRecentCommand;
             @MoreRecentCommand.canceled -= instance.OnMoreRecentCommand;
@@ -310,7 +281,6 @@ public partial class @DeveloperConsoleInput: IInputActionCollection2, IDisposabl
     public interface IDeveloperConsoleActions
     {
         void OnToggle(InputAction.CallbackContext context);
-        void OnExit(InputAction.CallbackContext context);
         void OnMoreRecentCommand(InputAction.CallbackContext context);
         void OnLessRecentCommand(InputAction.CallbackContext context);
         void OnBackspace(InputAction.CallbackContext context);

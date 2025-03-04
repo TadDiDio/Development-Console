@@ -9,16 +9,7 @@
                     "name": "Toggle",
                     "type": "Button",
                     "id": "7a582892-3360-4f95-8275-80e04d46edc2",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "Exit",
-                    "type": "Button",
-                    "id": "e9510e64-06df-43e1-88c9-17258c0cab84",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -27,7 +18,7 @@
                     "name": "MoreRecentCommand",
                     "type": "Button",
                     "id": "b52b4ee2-9642-464b-82e5-0135e75621eb",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -36,7 +27,7 @@
                     "name": "LessRecentCommand",
                     "type": "Button",
                     "id": "a1bb1440-f0f7-417c-89e2-7b1ce8ddd7a8",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -60,17 +51,6 @@
                     "processors": "",
                     "groups": "Keyboard and Mouse",
                     "action": "Toggle",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "d3c89f4e-8057-4126-bcc1-4497c12963ff",
-                    "path": "<Keyboard>/escape",
-                    "interactions": "Press",
-                    "processors": "",
-                    "groups": "Keyboard and Mouse",
-                    "action": "Exit",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
