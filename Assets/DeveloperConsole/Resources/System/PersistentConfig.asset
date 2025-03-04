@@ -20,6 +20,4 @@ MonoBehaviour:
   fpsshown: 1
   warnaboutinitscript: 1
   maxhistory: 100
-  commandHistory:
-  - reg
-  - clear
+  commandHistory: []
